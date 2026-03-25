@@ -1,4 +1,27 @@
-<header class="flex items-center justify-between px-6 py-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm sticky top-0 z-40 transition-all duration-300">
+<header
+    x-data="{ scrolled: false }"
+    x-init="
+        const set = () => {
+            const container = $el.closest('[data-scroll-container]');
+            const y = container ? container.scrollTop : window.scrollY;
+            scrolled = y > 10;
+        };
+        set();
+
+        const container = $el.closest('[data-scroll-container]');
+        if (container) {
+            container.addEventListener('scroll', set, { passive: true });
+            $cleanup(() => container.removeEventListener('scroll', set));
+        } else {
+            window.addEventListener('scroll', set, { passive: true });
+            $cleanup(() => window.removeEventListener('scroll', set));
+        }
+    "
+    :class="scrolled
+        ? 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-gray-200/50 dark:border-gray-700/50 shadow-sm'
+        : 'bg-white/0 dark:bg-gray-800/0 backdrop-blur-0 border-transparent shadow-none'"
+    class="flex items-center justify-between px-6 py-4 border-b sticky top-0 z-40 transition-all duration-300"
+>
     <div class="flex items-center">
         <button @click="sidebarOpen = true" class="text-gray-500 dark:text-gray-400 focus:outline-none lg:hidden mr-4 transition-colors duration-300 hover:text-gray-700 dark:hover:text-gray-200">
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

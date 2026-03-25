@@ -108,9 +108,32 @@
 
 ---
 
+### 6. ✅ **Landing Page Redesign + UX Interactions**
+**Status**: Completed
+
+**Yang Dibuat**:
+- Landing page baru berbasis komponen Blade (`welcome_v2`) dengan struktur section yang lebih modern dan conversion-focused
+- Sistem desain visual konsisten untuk hero, cards, section rhythm, dan CTA
+- Sticky navbar pada landing page dengan perubahan style saat scroll (blur + shadow)
+- Sticky navbar pada dashboard/navigation dengan deteksi scroll container (`data-scroll-container`)
+- Komponen reusable `x-scroll-to-top` untuk landing + dashboard
+- Scroll-to-top dengan Alpine.js, threshold configurable, animasi halus, dan auto-detect target scroll (`window`/container)
+
+**File yang Dibuat**:
+- `resources/views/welcome_v2.blade.php`
+- `resources/views/components/scroll-to-top.blade.php`
+- `resources/views/components/landing/*` (hero, trusted-by, key-benefits, how-it-works, features, use-cases, value, testimonials, faq, final-cta, footer, section-heading)
+
+**File yang Dimodifikasi**:
+- `routes/web.php` (route `/` ke `welcome_v2`)
+- `resources/views/components/layouts/app.blade.php`
+- `resources/views/layouts/navigation.blade.php`
+
+---
+
 ## 🎯 Fitur yang Masih Pending
 
-### 6. ⏳ **Task Comments System**
+### 7. ⏳ **Task Comments System**
 **Status**: Pending
 
 **Yang Perlu Dibuat**:
@@ -124,7 +147,7 @@
 
 ## 📊 Statistik Implementasi
 
-- **Total Fitur Diimplementasikan**: 5 dari 6 (83%)
+- **Total Fitur Diimplementasikan**: 6 dari 7 (86%)
 - **Migration Dibuat**: 2
 - **Model Baru**: 1 (TaskFile)
 - **Livewire Component Baru**: 1 (TaskDetail)
@@ -204,6 +227,7 @@ CREATE TABLE task_files (
 2. **File Storage**: Pastikan `php artisan storage:link` sudah dijalankan
 3. **Dark Mode**: Preference disimpan di localStorage browser
 4. **Bulk Actions**: Hanya bisa dilakukan oleh user yang memiliki akses ke Reports
+5. **Scroll Container**: Dashboard memakai `data-scroll-container`, sehingga sticky navbar + scroll-to-top tetap konsisten meskipun bukan window scrolling
 
 ---
 
@@ -216,6 +240,9 @@ CREATE TABLE task_files (
 - ✅ Responsive design untuk mobile
 - ✅ Dark mode support
 - ✅ Loading states untuk file upload
+- ✅ Premium landing page dengan section-based composition
+- ✅ Sticky navbar (landing + dashboard)
+- ✅ Reusable scroll-to-top component (`x-scroll-to-top`)
 
 ---
 

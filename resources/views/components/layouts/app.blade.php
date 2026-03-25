@@ -90,7 +90,10 @@
         <!-- Sidebar -->
         @include('layouts.sidebar')
 
-        <div class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden bg-gray-100 dark:bg-gray-900 transition-colors duration-300 ease-in-out">
+        <div
+            data-scroll-container
+            class="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden bg-gray-100 dark:bg-gray-900 transition-colors duration-300 ease-in-out"
+        >
             <!-- Header/Navigation -->
             @include('layouts.navigation')
 
@@ -98,6 +101,9 @@
             <main class="w-full flex-grow p-4 md:p-6 lg:p-8">
                 {{ $slot }}
             </main>
+
+            <!-- Scroll-to-top (global for authenticated pages) -->
+            <x-scroll-to-top />
         </div>
     </div>
 
