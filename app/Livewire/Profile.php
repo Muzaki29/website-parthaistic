@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Services\ActivityLogger;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -67,12 +68,16 @@ class Profile extends Component
 
         $user->save();
 
+        ActivityLogger::log('profile_updated', $user, \App\Models\User::class, $user->id, [
+            'password_changed' => filled($this->password),
+        ]);
+
         session()->flash('success', 'Profile updated successfully.');
         $this->password = ''; // Reset password field
     }
 
     public function render()
     {
-        return view('profile.edit');
+        return view('profile.edit')->layout('layouts.dashboard');
     }
 }

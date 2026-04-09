@@ -11,10 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (! Schema::hasTable('tugas')) {
+            return;
+        }
+
         Schema::table('tugas', function (Blueprint $table) {
-            $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium')->after('status_tugas');
-            $table->dateTime('due_date')->nullable()->after('priority');
-            $table->text('notes')->nullable()->after('deskripsi');
+            if (! Schema::hasColumn('tugas', 'priority')) {
+                $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium')->after('status_tugas');
+            }
+            if (! Schema::hasColumn('tugas', 'due_date')) {
+                $table->dateTime('due_date')->nullable()->after('priority');
+            }
+            if (! Schema::hasColumn('tugas', 'notes')) {
+                $table->text('notes')->nullable()->after('deskripsi');
+            }
         });
     }
 

@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>{{ $title ?? 'Dashboard Activity Tracker' }}</title>
+    <x-theme-script />
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('img/logo.png') }}">
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -25,6 +24,8 @@
             }
         }
     </script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -63,26 +64,12 @@
           sidebarOpen: false, 
           showContactModal: false, 
           contactSuccess: false,
-          darkMode: localStorage.getItem('darkMode') === 'true' || false,
+          darkMode: document.documentElement.classList.contains('dark'),
           init() {
-              if (this.darkMode) {
-                  document.documentElement.classList.add('dark');
-              }
+              window.addEventListener('theme:changed', (event) => this.darkMode = event.detail.theme === 'dark');
           },
           toggleDarkMode() {
-              this.darkMode = !this.darkMode;
-              localStorage.setItem('darkMode', this.darkMode);
-              // Smooth transition for dark mode toggle
-              document.documentElement.style.transition = 'background-color 300ms ease-in-out, color 300ms ease-in-out';
-              if (this.darkMode) {
-                  document.documentElement.classList.add('dark');
-              } else {
-                  document.documentElement.classList.remove('dark');
-              }
-              // Remove transition after animation completes
-              setTimeout(() => {
-                  document.documentElement.style.transition = '';
-              }, 300);
+              this.darkMode = window.toggleTheme() === 'dark';
           }
       }">
     <div class="flex h-screen overflow-hidden">

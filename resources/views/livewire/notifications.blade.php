@@ -1,4 +1,10 @@
 <div class="space-y-6">
+    @if (session()->has('success'))
+        <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300">
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
+
     <!-- Header Section -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -7,10 +13,10 @@
         </div>
         
         <div class="flex items-center gap-3">
-            <button class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-300">
+            <button wire:click="markAllAsRead" type="button" class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-300">
                 Mark all as read
             </button>
-            <button class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-primary to-blue-600 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-primary/20 duration-300">
+            <button wire:click="clearAll" type="button" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-primary to-blue-600 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-primary/20 duration-300">
                 Clear all
             </button>
         </div>
@@ -18,9 +24,9 @@
 
     <!-- Notifications List -->
     <div class="space-y-3">
-        @forelse($notifications as $notification)
+        @forelse($notificationRows as $notification)
         <div class="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 overflow-hidden {{ !$notification['read'] ? 'ring-2 ring-primary/20 bg-blue-50/30 dark:bg-blue-900/20' : '' }}">
-            <a href="{{ $notification['url'] }}" class="block p-6">
+            <div class="p-6">
                 <div class="flex items-start gap-4">
                     <!-- Icon -->
                     <div class="flex-shrink-0">
@@ -47,6 +53,10 @@
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                                 </svg>
+                            @elseif($notification['icon'] === 'mail')
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
                             @else
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -59,10 +69,10 @@
                     <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between gap-4">
                             <div class="flex-1">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors duration-300">
+                                <div class="mb-1 flex items-center gap-2">
+                                    <a href="{{ $notification['url'] }}" class="text-lg font-bold text-gray-900 transition-colors duration-300 hover:text-primary dark:text-white">
                                         {{ $notification['title'] }}
-                                    </h3>
+                                    </a>
                                     @if(!$notification['read'])
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary text-white transition-colors duration-300">
                                         New
@@ -85,7 +95,7 @@
                             
                             <!-- Action Button -->
                             <div class="flex-shrink-0">
-                                <button class="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300">
+                                <button wire:click="dismissNotification({{ $notification['id'] }})" type="button" class="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300" aria-label="Dismiss notification">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                     </svg>
@@ -94,7 +104,7 @@
                         </div>
                     </div>
                 </div>
-            </a>
+            </div>
         </div>
         @empty
         <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-12 text-center transition-all duration-300">
@@ -108,5 +118,11 @@
         </div>
         @endforelse
     </div>
+
+    @if($notificationRows instanceof \Illuminate\Contracts\Pagination\Paginator && $notificationRows->hasPages())
+        <div class="mt-6">
+            {{ $notificationRows->links() }}
+        </div>
+    @endif
 </div>
 

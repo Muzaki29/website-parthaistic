@@ -16,7 +16,10 @@ return new class extends Migration
             $table->string('id_kartu_trello')->unique();
             $table->string('judul');
             $table->text('deskripsi')->nullable();
+            $table->text('notes')->nullable();
             $table->enum('status_tugas', ['To Do', 'Doing', 'Done'])->default('To Do');
+            $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
+            $table->dateTime('due_date')->nullable();
             $table->dateTime('dibuat');
             $table->dateTime('diperbarui');
             $table->foreignId('id_sinkron')->nullable()->constrained('sinkronisasi_api')->onDelete('cascade');

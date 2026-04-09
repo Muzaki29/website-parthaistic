@@ -41,6 +41,16 @@ class User extends Authenticatable
         return $this->hasMany(Task::class, 'assigned_to');
     }
 
+    public function userNotifications()
+    {
+        return $this->hasMany(UserNotification::class);
+    }
+
+    public function assignedLeads()
+    {
+        return $this->hasMany(Lead::class, 'assigned_to');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

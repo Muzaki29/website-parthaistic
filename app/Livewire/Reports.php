@@ -46,6 +46,8 @@ class Reports extends Component
 
     public function bulkUpdateStatus($status)
     {
+        $this->authorizeBulkActions();
+
         if (empty($this->selectedTasks)) {
             session()->flash('error', 'Please select at least one task.');
 
@@ -64,6 +66,8 @@ class Reports extends Component
 
     public function bulkDelete()
     {
+        $this->authorizeBulkActions();
+
         if (empty($this->selectedTasks)) {
             session()->flash('error', 'Please select at least one task.');
 
@@ -106,6 +110,14 @@ class Reports extends Component
         return $query;
     }
 
+    protected function authorizeBulkActions(): void
+    {
+        $role = auth()->user()?->role;
+        if (! in_array($role, ['admin', 'manager'], true)) {
+            abort(403, 'Anda tidak memiliki izin untuk aksi massal.');
+        }
+    }
+
     public function export()
     {
         return Excel::download(new TasksExport(
@@ -124,6 +136,6 @@ class Reports extends Component
         return view('livewire.reports', [
             'tasks' => $tasks,
             'users' => $users,
-        ]);
+        ])->layout('layouts.dashboard');
     }
 }

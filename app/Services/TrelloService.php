@@ -5,8 +5,8 @@ namespace App\Services;
 use App\Models\Statistic;
 use App\Models\SyncLog;
 use App\Models\Task;
-use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -33,16 +33,31 @@ class TrelloService
      */
     public function syncData()
     {
+        if (! $this->apiKey || ! $this->apiToken || ! $this->boardId) {
+            return [
+                'status' => false,
+                'message' => 'Konfigurasi Trello belum lengkap. Periksa TRELLO_API_KEY, TRELLO_API_TOKEN, dan TRELLO_BOARD_ID.',
+            ];
+        }
+
+        $lock = Cache::lock('trello:sync:lock', 120);
+        if (! $lock->get()) {
+            return [
+                'status' => false,
+                'message' => 'Sinkronisasi sedang berjalan. Coba lagi dalam beberapa saat.',
+            ];
+        }
+
         $startTime = now();
 
-        // Use authenticated user or fallback to first admin/user for logging
         $userId = auth()->id();
         if (! $userId) {
-            $firstUser = User::first();
-            if (! $firstUser) {
-                throw new \Exception('Tidak ada user di database. Silakan jalankan seeder terlebih dahulu.');
-            }
-            $userId = $firstUser->id;
+            $lock->release();
+
+            return [
+                'status' => false,
+                'message' => 'Sesi pengguna tidak valid untuk melakukan sinkronisasi.',
+            ];
         }
 
         $syncLog = SyncLog::create([
@@ -86,7 +101,10 @@ class TrelloService
             ];
 
         } catch (\Exception $e) {
-            Log::error('Trello Sync Error: '.$e->getMessage());
+            Log::error('Trello Sync Error', [
+                'error' => $e->getMessage(),
+                'board_id' => $this->boardId,
+            ]);
 
             $syncLog->update([
                 'status' => 'Gagal',
@@ -95,20 +113,24 @@ class TrelloService
 
             return [
                 'status' => false,
-                'message' => $e->getMessage(),
+                'message' => 'Sinkronisasi gagal. Silakan coba lagi atau hubungi admin sistem.',
             ];
+        } finally {
+            optional($lock)->release();
         }
     }
 
     protected function fetchLists()
     {
-        $response = Http::get("https://api.trello.com/1/boards/{$this->boardId}/lists", [
+        $response = Http::timeout(10)
+            ->retry(2, 300, throw: false)
+            ->get("https://api.trello.com/1/boards/{$this->boardId}/lists", [
             'key' => $this->apiKey,
             'token' => $this->apiToken,
         ]);
 
         if ($response->failed()) {
-            throw new \Exception('Gagal mengambil List Trello: '.$response->body());
+            throw new \Exception('Gagal mengambil data list Trello.');
         }
 
         return $response->json();
@@ -116,14 +138,19 @@ class TrelloService
 
     protected function fetchMembers()
     {
-        $response = Http::get("https://api.trello.com/1/boards/{$this->boardId}/members", [
+        $response = Http::timeout(10)
+            ->retry(2, 300, throw: false)
+            ->get("https://api.trello.com/1/boards/{$this->boardId}/members", [
             'key' => $this->apiKey,
             'token' => $this->apiToken,
         ]);
 
         if ($response->failed()) {
             // Non-critical, just return empty
-            Log::warning('Gagal mengambil Member Trello: '.$response->body());
+            Log::warning('Gagal mengambil member Trello', [
+                'board_id' => $this->boardId,
+                'status' => $response->status(),
+            ]);
 
             return [];
         }
@@ -133,14 +160,16 @@ class TrelloService
 
     protected function fetchCards()
     {
-        $response = Http::get("https://api.trello.com/1/boards/{$this->boardId}/cards", [
+        $response = Http::timeout(15)
+            ->retry(2, 300, throw: false)
+            ->get("https://api.trello.com/1/boards/{$this->boardId}/cards", [
             'key' => $this->apiKey,
             'token' => $this->apiToken,
             'fields' => 'id,name,desc,idList,dateLastActivity,idMembers',
         ]);
 
         if ($response->failed()) {
-            throw new \Exception('Gagal mengambil Kartu Trello: '.$response->body());
+            throw new \Exception('Gagal mengambil data kartu Trello.');
         }
 
         return $response->json();
@@ -237,20 +266,26 @@ class TrelloService
 
     protected function calculateStatistics()
     {
-        // Calculate for all users who have tasks
-        $userIds = Task::whereNotNull('assigned_to')->distinct()->pluck('assigned_to');
+        $rows = Task::query()
+            ->selectRaw("
+                assigned_to as id_user,
+                SUM(CASE WHEN status_tugas = 'To Do' THEN 1 ELSE 0 END) as total_todo,
+                SUM(CASE WHEN status_tugas = 'Doing' THEN 1 ELSE 0 END) as total_doing,
+                SUM(CASE WHEN status_tugas = 'Done' THEN 1 ELSE 0 END) as total_done
+            ")
+            ->whereNotNull('assigned_to')
+            ->groupBy('assigned_to')
+            ->get();
 
-        foreach ($userIds as $userId) {
-            $stats = [
-                'total_todo' => Task::where('assigned_to', $userId)->where('status_tugas', 'To Do')->count(),
-                'total_doing' => Task::where('assigned_to', $userId)->where('status_tugas', 'Doing')->count(),
-                'total_done' => Task::where('assigned_to', $userId)->where('status_tugas', 'Done')->count(),
-                'diperbarui_pada' => now(),
-            ];
-
+        foreach ($rows as $row) {
             Statistic::updateOrCreate(
-                ['id_user' => $userId],
-                $stats
+                ['id_user' => $row->id_user],
+                [
+                    'total_todo' => (int) $row->total_todo,
+                    'total_doing' => (int) $row->total_doing,
+                    'total_done' => (int) $row->total_done,
+                    'diperbarui_pada' => now(),
+                ]
             );
         }
     }

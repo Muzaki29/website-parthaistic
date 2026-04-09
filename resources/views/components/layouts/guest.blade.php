@@ -4,14 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Login - Dashboard Activity Tracker' }}</title>
+    <x-theme-script />
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('img/logo.png') }}">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -22,6 +22,8 @@
             }
         }
     </script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -49,7 +51,7 @@
     </style>
     @livewireStyles
 </head>
-<body class="bg-gray-50 font-sans antialiased text-gray-900">
+<body class="bg-gray-50 font-sans antialiased text-gray-900 dark:bg-neutral-950 dark:text-neutral-100">
     {{ $slot }}
     @livewireScripts
 </body>

@@ -4,7 +4,6 @@ namespace App\Livewire;
 
 use App\Models\Task;
 use App\Models\TaskFile;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -50,6 +49,7 @@ class TaskDetail extends Component
     public function loadTask()
     {
         $this->task = Task::with(['user', 'files.uploader'])->findOrFail($this->taskId);
+        $this->authorizeTaskAccess();
         $this->judul = $this->task->judul;
         $this->deskripsi = $this->task->deskripsi;
         $this->notes = $this->task->notes;
@@ -70,6 +70,10 @@ class TaskDetail extends Component
 
     public function updateTask()
     {
+        if (! $this->canManageTask()) {
+            abort(403, 'Anda tidak memiliki izin untuk memperbarui task ini.');
+        }
+
         $this->validate([
             'judul' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
@@ -98,8 +102,12 @@ class TaskDetail extends Component
 
     public function uploadFiles()
     {
+        if (! $this->canManageTask()) {
+            abort(403, 'Anda tidak memiliki izin untuk upload file pada task ini.');
+        }
+
         $this->validate([
-            'files.*' => 'file|max:10240', // 10MB max
+            'files.*' => 'file|max:10240|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,webp,txt,csv,zip,rar',
         ]);
 
         foreach ($this->files as $file) {
@@ -122,7 +130,15 @@ class TaskDetail extends Component
 
     public function deleteFile($fileId)
     {
-        $file = TaskFile::findOrFail($fileId);
+        $file = TaskFile::query()
+            ->where('id', $fileId)
+            ->where('task_id', $this->task->id)
+            ->firstOrFail();
+
+        if (! $this->canManageTask() && $file->uploaded_by !== auth()->id()) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus file ini.');
+        }
+
         if (Storage::disk('public')->exists($file->file_path)) {
             Storage::disk('public')->delete($file->file_path);
         }
@@ -134,8 +150,37 @@ class TaskDetail extends Component
 
     public function render()
     {
+        $users = [];
+        if (in_array(auth()->user()?->role, ['admin', 'manager'], true)) {
+            $users = \App\Models\User::query()->select('id', 'name', 'email', 'role')->orderBy('name')->get();
+        }
+
         return view('livewire.task-detail', [
-            'users' => \App\Models\User::all(),
-        ]);
+            'users' => $users,
+        ])->layout('layouts.dashboard');
+    }
+
+    protected function canManageTask(): bool
+    {
+        $role = auth()->user()?->role;
+
+        if (in_array($role, ['admin', 'manager'], true)) {
+            return true;
+        }
+
+        return $this->task->assigned_to === auth()->id();
+    }
+
+    protected function authorizeTaskAccess(): void
+    {
+        $role = auth()->user()?->role;
+
+        if (in_array($role, ['admin', 'manager'], true)) {
+            return;
+        }
+
+        if ($this->task->assigned_to !== auth()->id()) {
+            abort(403, 'Anda tidak memiliki akses ke task ini.');
+        }
     }
 }

@@ -1,9 +1,9 @@
-<div class="space-y-6">
+<div class="space-y-8">
     <!-- Header Section -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-            <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-300">Dashboard Overview</h1>
-            <p class="text-gray-600 dark:text-gray-400 transition-colors duration-300">Welcome back, {{ auth()->user()->name }}! Here's what's happening today.</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-300">What matters now</h1>
+            <p class="text-gray-600 dark:text-gray-400 transition-colors duration-300">Pantau progres terbaru, perubahan minggu ini, dan aksi berikutnya untuk tim.</p>
         </div>
         
         <div class="flex items-center gap-3">
@@ -24,7 +24,7 @@
                 </div>
             @endif
 
-            <button wire:click="syncData" wire:loading.attr="disabled" class="group relative overflow-hidden bg-linear-to-r from-primary to-primary/80 hover:from-primary hover:to-primary/90 text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 flex items-center gap-2 {{ auth()->user()->role === 'manager' ? 'hidden' : '' }}">
+            <button wire:click="syncData" wire:loading.attr="disabled" class="group relative overflow-hidden bg-linear-to-r from-primary to-primary/80 hover:from-primary hover:to-primary/90 text-white font-semibold py-3 px-6 rounded-xl shadow-md shadow-primary/20 hover:shadow-lg transition-all duration-300 flex items-center gap-2 {{ auth()->user()->role === 'manager' ? 'hidden' : '' }}">
                 <svg wire:loading.remove wire:target="syncData" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
@@ -38,11 +38,72 @@
         </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+    <!-- Operational snapshot -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <a href="{{ route('notifications') }}" class="group flex flex-col justify-between rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:border-primary/40 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/80">
+            <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Perlu dibaca</span>
+                <span class="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary dark:bg-primary/20">Notifikasi</span>
+            </div>
+            <p class="mt-3 text-3xl font-bold text-gray-900 dark:text-white">{{ $unreadNotifications }}</p>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Belum dibaca — buka pusat notifikasi.</p>
+            <span class="mt-3 text-sm font-semibold text-primary group-hover:underline">Kelola notifikasi →</span>
+        </a>
+
+        @if(auth()->user()->role === 'admin')
+        <a href="{{ route('admin.leads.index') }}" class="group flex flex-col justify-between rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:border-amber-400/50 hover:shadow-md dark:border-gray-700 dark:bg-gray-800/80">
+            <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Pipeline lead</span>
+                <span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">Follow-up</span>
+            </div>
+            <p class="mt-3 text-3xl font-bold text-gray-900 dark:text-white">{{ $leadsNeedingFollowUp }}</p>
+            <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">Lead aktif (baru / dihubungi / qualified).</p>
+            <span class="mt-3 text-sm font-semibold text-amber-800 group-hover:underline dark:text-amber-200">Buka inbox lead →</span>
+        </a>
+        @else
+        <div class="flex flex-col justify-between rounded-2xl border border-dashed border-gray-200 bg-white/60 p-5 dark:border-gray-700 dark:bg-gray-800/40">
+            <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Akses admin</span>
+            <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">Inbox lead hanya untuk admin. Fokus pada tugas &amp; laporan Anda.</p>
+            <a href="{{ route('reports') }}" class="mt-3 text-sm font-semibold text-primary hover:underline">Buka Reports →</a>
+        </div>
+        @endif
+
+        <div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800/80">
+            <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Langkah berikutnya</span>
+            </div>
+            <ul class="mt-3 space-y-2 text-sm text-gray-700 dark:text-gray-200">
+                <li class="flex gap-2"><span class="text-primary">1.</span> Tinjau notifikasi &amp; tugas overdue.</li>
+                <li class="flex gap-2"><span class="text-primary">2.</span> @if(auth()->user()->role === 'admin') Tindak lanjuti lead baru di inbox. @else Update status tugas di Reports. @endif</li>
+                <li class="flex gap-2"><span class="text-primary">3.</span> Sinkronkan Trello bila perlu (admin).</li>
+            </ul>
+        </div>
+    </div>
+
+    @if($recentActivity->isNotEmpty())
+    <div class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800/80">
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Aktivitas terbaru</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Audit ringan untuk melihat apa yang baru berubah.</p>
+            </div>
+        </div>
+        <ul class="mt-4 divide-y divide-gray-100 dark:divide-gray-700">
+            @foreach($recentActivity as $log)
+            <li class="flex flex-wrap items-baseline justify-between gap-2 py-3 text-sm">
+                <span class="font-medium text-gray-900 dark:text-gray-100">{{ str_replace('_', ' ', $log->event_type) }}</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">{{ $log->created_at?->diffForHumans() }}</span>
+            </li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
+    <!-- Priority Summary -->
+    <div class="grid grid-cols-1 lg:grid-cols-[1.4fr,0.6fr] gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Card 1: Total Tasks -->
-        <div class="group relative overflow-hidden bg-linear-to-br from-white dark:from-gray-800 to-primary/5 dark:to-gray-700/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 dark:border-gray-700">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16"></div>
+        <div class="group relative overflow-hidden bg-white dark:bg-gray-800/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700">
             <div class="relative p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="p-3 rounded-xl bg-linear-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
@@ -60,8 +121,7 @@
         </div>
 
         <!-- Card 2: Task Done -->
-        <div class="group relative overflow-hidden bg-linear-to-br from-white dark:from-gray-800 to-green-50/50 dark:to-gray-700/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 dark:border-gray-700">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full -mr-16 -mt-16"></div>
+        <div class="group relative overflow-hidden bg-white dark:bg-gray-800/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700">
             <div class="relative p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="p-3 rounded-xl bg-linear-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/20">
@@ -81,8 +141,7 @@
         </div>
 
         <!-- Card 3: Overdue -->
-        <div class="group relative overflow-hidden bg-linear-to-br from-white dark:from-gray-800 to-red-50/50 dark:to-gray-700/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 dark:border-gray-700">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full -mr-16 -mt-16"></div>
+        <div class="group relative overflow-hidden bg-white dark:bg-gray-800/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700">
             <div class="relative p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="p-3 rounded-xl bg-linear-to-br from-red-500 to-rose-600 shadow-lg shadow-red-500/20">
@@ -99,28 +158,22 @@
             </div>
         </div>
 
-        <!-- Card 4: Productivity -->
-        <div class="group relative overflow-hidden bg-linear-to-br from-white dark:from-gray-800 to-purple-50/50 dark:to-gray-700/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 dark:border-gray-700">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 rounded-full -mr-16 -mt-16"></div>
-            <div class="relative p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 rounded-xl bg-linear-to-br from-purple-500 to-indigo-600 shadow-lg shadow-purple-500/20">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                        </svg>
-                    </div>
-                    <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider transition-colors duration-300">Trend</div>
-                </div>
-                <div class="space-y-1">
-                    <p class="text-lg font-bold text-gray-900 dark:text-white leading-tight transition-colors duration-300">{{ $trendText }}</p>
-                    <p class="text-sm text-gray-600 dark:text-gray-300 font-medium transition-colors duration-300">This Week</p>
-                </div>
-            </div>
         </div>
+        <aside class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800/80 p-6 shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Next action</h2>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                {{ $trendText }}. Prioritaskan task overdue dan update status setelah standup.
+            </p>
+            <div class="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                <p>1) Review task overdue</p>
+                <p>2) Sinkronisasi data terbaru</p>
+                <p>3) Kirim ringkasan progres</p>
+            </div>
+        </aside>
     </div>
 
     <!-- Charts & Tables -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Bar Chart -->
         <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-6 hover:shadow-2xl transition-all duration-300">
             <div class="flex items-center justify-between mb-6">

@@ -2,15 +2,23 @@
 
 namespace App\Livewire;
 
+use App\Models\ActivityLog;
+use App\Models\Lead;
 use App\Models\Task;
 use App\Models\User;
+use App\Models\UserNotification;
 use App\Services\TrelloService;
+use App\Services\UserNotificationService;
 use Livewire\Component;
 
 class Dashboard extends Component
 {
     public function syncData(TrelloService $trelloService)
     {
+        if (! auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403, 'Anda tidak memiliki izin untuk sinkronisasi data.');
+        }
+
         $result = $trelloService->syncData();
 
         if ($result['status']) {
@@ -22,6 +30,28 @@ class Dashboard extends Component
 
     public function render()
     {
+        $user = auth()->user();
+        app(UserNotificationService::class)->syncDerivedTaskNotifications($user);
+
+        $unreadNotifications = UserNotification::query()
+            ->where('user_id', $user->id)
+            ->visible()
+            ->unread()
+            ->count();
+
+        $leadsNeedingFollowUp = 0;
+        if ($user->role === 'admin') {
+            $leadsNeedingFollowUp = Lead::query()
+                ->whereIn('status', [Lead::STATUS_NEW, Lead::STATUS_CONTACTED, Lead::STATUS_QUALIFIED])
+                ->count();
+        }
+
+        $recentActivity = ActivityLog::query()
+            ->when($user->role !== 'admin', fn ($q) => $q->where('user_id', $user->id))
+            ->latest()
+            ->take(12)
+            ->get();
+
         // 1. Stats Cards
         $totalTasks = Task::count();
         $totalDone = Task::where('status_tugas', 'Done')->count();
@@ -73,6 +103,9 @@ class Dashboard extends Component
             'statusCounts' => $statusCounts,
             'topPerformers' => $topPerformers,
             'activityData' => $activityData,
-        ]);
+            'unreadNotifications' => $unreadNotifications,
+            'leadsNeedingFollowUp' => $leadsNeedingFollowUp,
+            'recentActivity' => $recentActivity,
+        ])->layout('layouts.dashboard');
     }
 }

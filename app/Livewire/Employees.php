@@ -28,6 +28,7 @@ class Employees extends Component
 
     public function openCreateModal()
     {
+        $this->authorizeAdmin();
         $this->reset(['newName', 'newEmail', 'newPassword', 'newRole', 'newJabatan']);
         $this->newRole = 'manager';
         $this->showCreateModal = true;
@@ -40,6 +41,7 @@ class Employees extends Component
 
     public function createUser()
     {
+        $this->authorizeAdmin();
         $this->validate([
             'newName' => 'required|string|max:255',
             'newEmail' => 'required|email|unique:users,email',
@@ -64,6 +66,7 @@ class Employees extends Component
 
     public function editRole($userId)
     {
+        $this->authorizeAdmin();
         $this->editingUser = User::find($userId);
         $this->role = $this->editingUser->role;
         $this->showModal = true;
@@ -71,6 +74,7 @@ class Employees extends Component
 
     public function updateRole()
     {
+        $this->authorizeAdmin();
         $this->validate([
             'role' => 'required|in:admin,manager,employee',
         ]);
@@ -84,10 +88,18 @@ class Employees extends Component
 
     public function deleteUser($userId)
     {
+        $this->authorizeAdmin();
         $user = User::find($userId);
         if ($user) {
             $user->delete();
             session()->flash('success', 'User deleted successfully.');
+        }
+    }
+
+    protected function authorizeAdmin(): void
+    {
+        if (! auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403, 'Anda tidak memiliki izin untuk mengelola user.');
         }
     }
 
@@ -101,6 +113,6 @@ class Employees extends Component
     {
         $users = User::all();
 
-        return view('livewire.employees', ['users' => $users]);
+        return view('livewire.employees', ['users' => $users])->layout('layouts.dashboard');
     }
 }

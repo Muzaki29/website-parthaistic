@@ -9,7 +9,7 @@
             <button wire:click="toggleEdit" class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                 {{ $editing ? 'Cancel' : 'Edit Task' }}
             </button>
-            <a href="/reports" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-primary to-blue-600 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-primary/20">
+            <a href="{{ route('reports') }}" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-primary to-blue-600 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-primary/20">
                 Back to Reports
             </a>
         </div>

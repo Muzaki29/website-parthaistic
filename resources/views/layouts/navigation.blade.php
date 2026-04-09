@@ -47,18 +47,13 @@
         </button>
         
         <!-- Notification Bell -->
-        @php
-            use App\Helpers\NotificationHelper;
-            $notifications = auth()->check() ? NotificationHelper::getDummyNotifications(auth()->user()) : [];
-            $unreadCount = auth()->check() ? NotificationHelper::getUnreadCount(auth()->user()) : 0;
-        @endphp
         <div class="relative" x-data="{ notifOpen: false }">
             <button @click="notifOpen = !notifOpen" class="relative flex items-center text-gray-500 dark:text-gray-400 hover:text-primary focus:outline-none transition-colors p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                 </svg>
-                @if($unreadCount > 0)
-                <span class="absolute top-0 right-0 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold leading-none text-white bg-gradient-to-r from-red-500 to-red-600 rounded-full ring-2 ring-white shadow-sm animate-pulse">{{ $unreadCount > 9 ? '9+' : $unreadCount }}</span>
+                @if(($navUnreadCount ?? 0) > 0)
+                <span class="absolute top-0 right-0 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold leading-none text-white bg-gradient-to-r from-red-500 to-red-600 rounded-full ring-2 ring-white shadow-sm animate-pulse">{{ $navUnreadCount > 9 ? '9+' : $navUnreadCount }}</span>
                 @endif
             </button>
 
@@ -84,22 +79,22 @@
                             </div>
                             <div>
                                 <h3 class="text-base font-bold text-white">Notifications</h3>
-                                @if($unreadCount > 0)
-                                <p class="text-xs text-blue-100">{{ $unreadCount }} unread</p>
+                                @if(($navUnreadCount ?? 0) > 0)
+                                <p class="text-xs text-blue-100">{{ $navUnreadCount }} unread</p>
                                 @endif
                             </div>
                         </div>
-                        @if($unreadCount > 0)
-                        <button class="text-xs text-white/80 hover:text-white font-semibold px-3 py-1 rounded-lg hover:bg-white/10 transition-colors">
-                            Mark all read
-                        </button>
+                        @if(($navUnreadCount ?? 0) > 0)
+                        <a href="{{ route('notifications') }}" class="text-xs text-white/80 hover:text-white font-semibold px-3 py-1 rounded-lg hover:bg-white/10 transition-colors">
+                            Manage notifications
+                        </a>
                         @endif
                     </div>
                 </div>
                 
                 <!-- Notifications List -->
                 <div class="py-2">
-                    @forelse($notifications as $notification)
+                    @forelse($navNotifications ?? [] as $notification)
                     <a href="{{ $notification['url'] }}" 
                        class="group relative block px-5 py-4 hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-all duration-300 border-b border-gray-100/50 dark:border-gray-700/50 {{ !$notification['read'] ? 'bg-blue-50/30 dark:bg-blue-900/20' : '' }}">
                         <div class="flex items-start gap-3">
@@ -127,6 +122,10 @@
                                     @elseif($notification['icon'] === 'alert')
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                        </svg>
+                                    @elseif($notification['icon'] === 'mail')
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                         </svg>
                                     @else
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,9 +173,9 @@
                 </div>
                 
                 <!-- Footer -->
-                @if(count($notifications) > 0)
+                @if(count($navNotifications ?? []) > 0)
                 <div class="sticky bottom-0 bg-gray-50/80 dark:bg-gray-700/80 backdrop-blur-sm border-t border-gray-200 dark:border-gray-700 px-5 py-3 transition-all duration-300">
-                    <a href="/notifications" class="block text-center text-sm font-semibold text-primary dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-300">
+                    <a href="{{ route('notifications') }}" class="block text-center text-sm font-semibold text-primary dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-300">
                         View All Notifications
                     </a>
                 </div>
