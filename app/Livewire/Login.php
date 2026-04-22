@@ -17,7 +17,7 @@ class Login extends Component
     public function mount()
     {
         if (Auth::check()) {
-            redirect()->route('dashboard')->send();
+            $this->redirectRoute('dashboard', navigate: true);
         }
     }
 

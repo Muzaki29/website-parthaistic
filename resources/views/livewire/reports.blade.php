@@ -6,14 +6,20 @@
             <p class="text-gray-600 dark:text-gray-400 transition-colors duration-300">Analisis dan laporan tugas tim</p>
         </div>
         
-        <!-- Export Button -->
-        <button wire:click="export" wire:loading.attr="disabled" wire:target="export" class="group relative flex items-center gap-2 overflow-hidden rounded-xl bg-linear-to-r from-green-600 to-emerald-600 px-6 py-3 font-semibold text-white shadow-lg shadow-green-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:from-green-700 hover:to-emerald-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            <span wire:loading.remove wire:target="export">Export Excel</span>
-            <span wire:loading wire:target="export">Exporting...</span>
-        </button>
+        <div class="flex flex-wrap items-center gap-2">
+            @if($canCreateTask)
+            <button wire:click="openCreateModal" class="ui-btn-primary px-5 py-3">
+                + Add Task
+            </button>
+            @endif
+            <button wire:click="export" wire:loading.attr="disabled" wire:target="export" class="group relative flex items-center gap-2 overflow-hidden rounded-xl bg-linear-to-r from-green-600 to-emerald-600 px-6 py-3 font-semibold text-white shadow-lg shadow-green-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:from-green-700 hover:to-emerald-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span wire:loading.remove wire:target="export">Export Excel</span>
+                <span wire:loading wire:target="export">Exporting...</span>
+            </button>
+        </div>
     </div>
 
     <!-- Filter Card -->
@@ -152,6 +158,9 @@
                         <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider transition-colors duration-300">
                             Last Update
                         </th>
+                        <th class="px-6 py-4 text-left text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider transition-colors duration-300">
+                            Actions
+                        </th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700 transition-colors duration-300">
@@ -169,8 +178,8 @@
                         
                         <!-- Task Title -->
                         <td class="px-6 py-4 text-sm">
-                            <a href="{{ route('tasks.show', $task->id) }}" class="group">
-                                <p class="font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors duration-300 mb-1">{{ $task->judul }}</p>
+                            <a href="{{ route('tasks.show', $task->id) }}" class="group block">
+                                <p class="mb-1 font-semibold text-gray-900 transition-colors duration-300 group-hover:text-primary dark:text-white">{{ $task->judul }}</p>
                                 @if($task->deskripsi)
                                     <p class="text-gray-500 dark:text-gray-400 text-xs line-clamp-2 max-w-md transition-colors duration-300">{{ $task->deskripsi }}</p>
                                 @endif
@@ -271,10 +280,25 @@
                                 <span class="font-medium">{{ $task->diperbarui ? $task->diperbarui->format('d M Y') : '-' }}</span>
                             </div>
                         </td>
+                        <td class="px-6 py-4 text-sm">
+                            <div class="flex items-center gap-2">
+                                @if(auth()->user()->role !== 'employee' || (int) $task->assigned_to === (int) auth()->id())
+                                <button wire:click="openEditModal({{ $task->id }})" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/10">
+                                    Edit
+                                </button>
+                                <button wire:click="confirmDeleteTask({{ $task->id }})" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 dark:hover:bg-red-900/20">
+                                    Delete
+                                </button>
+                                @endif
+                                <a href="{{ route('tasks.show', $task->id) }}" class="rounded-lg px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                                    View
+                                </a>
+                            </div>
+                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center">
+                        <td colspan="8" class="px-6 py-12 text-center">
                             <div class="ui-empty-state flex flex-col items-center justify-center text-gray-400">
                                 <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -293,4 +317,149 @@
             {{ $tasks->links() }}
         </div>
     </div>
+
+    @if($showCreateModal)
+    <div class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+        <div class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+            <div class="ui-modal-backdrop" wire:click="closeCreateModal"></div>
+            <span class="hidden sm:inline-block sm:h-screen sm:align-middle">&#8203;</span>
+            <div class="ui-modal-shell text-left sm:max-w-2xl">
+                <div class="bg-linear-to-r from-primary to-blue-600 px-6 py-5">
+                    <h3 class="text-xl font-bold text-white">Create Task</h3>
+                </div>
+                <form wire:submit.prevent="createTask" class="space-y-4 px-6 pb-6 pt-5">
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Title</label>
+                        <input type="text" wire:model="formTitle" class="ui-input py-3">
+                        @error('formTitle') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Description</label>
+                        <textarea wire:model="formDescription" rows="3" class="ui-input py-3"></textarea>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Status</label>
+                            <select wire:model="formStatus" class="ui-input py-3">
+                                @foreach($statuses as $statusOption)
+                                    <option value="{{ $statusOption }}">{{ $statusOption }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Priority</label>
+                            <select wire:model="formPriority" class="ui-input py-3">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Due Date</label>
+                            <input type="datetime-local" wire:model="formDueDate" class="ui-input py-3">
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Assign To</label>
+                            <select wire:model="formAssignedTo" class="ui-input py-3">
+                                <option value="">Unassigned</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
+                        <button type="button" wire:click="closeCreateModal" class="ui-btn-secondary px-5 py-2.5">Cancel</button>
+                        <button type="submit" class="ui-btn-primary px-5 py-2.5">Create Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    @if($showEditModal)
+    <div class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+        <div class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+            <div class="ui-modal-backdrop" wire:click="closeEditModal"></div>
+            <span class="hidden sm:inline-block sm:h-screen sm:align-middle">&#8203;</span>
+            <div class="ui-modal-shell text-left sm:max-w-2xl">
+                <div class="bg-linear-to-r from-primary to-blue-600 px-6 py-5">
+                    <h3 class="text-xl font-bold text-white">Edit Task</h3>
+                </div>
+                <form wire:submit.prevent="updateTaskFromModal" class="space-y-4 px-6 pb-6 pt-5">
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Title</label>
+                        <input type="text" wire:model="formTitle" class="ui-input py-3">
+                        @error('formTitle') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Description</label>
+                        <textarea wire:model="formDescription" rows="3" class="ui-input py-3"></textarea>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Status</label>
+                            <select wire:model="formStatus" class="ui-input py-3">
+                                @foreach($statuses as $statusOption)
+                                    <option value="{{ $statusOption }}">{{ $statusOption }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Priority</label>
+                            <select wire:model="formPriority" class="ui-input py-3">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Due Date</label>
+                            <input type="datetime-local" wire:model="formDueDate" class="ui-input py-3">
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Assign To</label>
+                            <select wire:model="formAssignedTo" class="ui-input py-3">
+                                <option value="">Unassigned</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
+                        <button type="button" wire:click="closeEditModal" class="ui-btn-secondary px-5 py-2.5">Cancel</button>
+                        <button type="submit" class="ui-btn-primary px-5 py-2.5">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    @if($showDeleteModal)
+    <div class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+        <div class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+            <div class="ui-modal-backdrop" wire:click="cancelDeleteTask"></div>
+            <span class="hidden sm:inline-block sm:h-screen sm:align-middle">&#8203;</span>
+            <div class="ui-modal-shell text-left sm:max-w-md">
+                <div class="px-6 py-5">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Delete task?</h3>
+                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Task akan dihapus permanen dari laporan.</p>
+                </div>
+                <div class="flex flex-col-reverse gap-3 border-t border-gray-200 px-6 py-4 dark:border-gray-700 sm:flex-row sm:justify-end">
+                    <button type="button" wire:click="cancelDeleteTask" class="ui-btn-secondary px-4 py-2">Cancel</button>
+                    <button type="button" wire:click="deleteTaskFromModal" class="ui-btn-danger px-4 py-2">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

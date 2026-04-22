@@ -17,9 +17,9 @@ class TaskDetail extends Component
 
     public $taskId;
 
-    public $showModal = false;
-
-    public $editing = false;
+    public bool $showEditModal = false;
+    public bool $showDeleteFileModal = false;
+    public ?int $deletingFileId = null;
 
     // Edit fields
     public $judul;
@@ -61,12 +61,22 @@ class TaskDetail extends Component
         $this->uploadedFiles = $this->task->files;
     }
 
-    public function toggleEdit()
+    public function openEditModal()
     {
-        $this->editing = ! $this->editing;
-        if (! $this->editing) {
-            $this->loadTask();
+        if (! $this->canManageTask()) {
+            abort(403, 'Anda tidak memiliki izin untuk memperbarui task ini.');
         }
+
+        $this->loadTask();
+        $this->resetErrorBag();
+        $this->showEditModal = true;
+    }
+
+    public function closeEditModal()
+    {
+        $this->showEditModal = false;
+        $this->resetErrorBag();
+        $this->loadTask();
     }
 
     public function updateTask()
@@ -97,7 +107,7 @@ class TaskDetail extends Component
         ]);
 
         session()->flash('success', 'Task updated successfully!');
-        $this->editing = false;
+        $this->showEditModal = false;
         $this->loadTask();
     }
 
@@ -129,10 +139,35 @@ class TaskDetail extends Component
         $this->loadTask();
     }
 
-    public function deleteFile($fileId)
+    public function confirmDeleteFile(int $fileId): void
     {
         $file = TaskFile::query()
             ->where('id', $fileId)
+            ->where('task_id', $this->task->id)
+            ->firstOrFail();
+
+        if (! $this->canManageTask() && $file->uploaded_by !== auth()->id()) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus file ini.');
+        }
+
+        $this->deletingFileId = $file->id;
+        $this->showDeleteFileModal = true;
+    }
+
+    public function cancelDeleteFile(): void
+    {
+        $this->showDeleteFileModal = false;
+        $this->deletingFileId = null;
+    }
+
+    public function deleteFile()
+    {
+        if (! $this->deletingFileId) {
+            return;
+        }
+
+        $file = TaskFile::query()
+            ->where('id', $this->deletingFileId)
             ->where('task_id', $this->task->id)
             ->firstOrFail();
 
@@ -146,6 +181,7 @@ class TaskDetail extends Component
         $file->delete();
 
         session()->flash('success', 'File deleted successfully!');
+        $this->cancelDeleteFile();
         $this->loadTask();
     }
 

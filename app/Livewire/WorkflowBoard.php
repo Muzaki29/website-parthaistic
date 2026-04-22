@@ -13,6 +13,16 @@ class WorkflowBoard extends Component
     public ?string $createForStatus = null;
     public string $newTitle = '';
     public string $newDescription = '';
+    public bool $showEditModal = false;
+    public bool $showDeleteModal = false;
+    public ?int $editingTaskId = null;
+    public ?int $deletingTaskId = null;
+    public string $editTitle = '';
+    public string $editDescription = '';
+    public string $editStatus = '';
+    public string $editPriority = 'medium';
+    public ?string $editDueDate = null;
+    public ?int $editAssignedTo = null;
 
     public function openCreateCard(string $status): void
     {
@@ -110,6 +120,90 @@ class WorkflowBoard extends Component
         $this->dispatch('board-toast', type: 'success', message: "Task dipindah dari {$oldStatus} ke {$status}.");
     }
 
+    public function openEditModal(int $taskId): void
+    {
+        $task = Task::query()->findOrFail($taskId);
+        Gate::authorize('update', $task);
+
+        $this->editingTaskId = $task->id;
+        $this->editTitle = $task->judul;
+        $this->editDescription = $task->deskripsi ?? '';
+        $this->editStatus = $task->status_tugas;
+        $this->editPriority = $task->priority ?? 'medium';
+        $this->editDueDate = $task->due_date?->format('Y-m-d\TH:i');
+        $this->editAssignedTo = $task->assigned_to ? (int) $task->assigned_to : null;
+        $this->showEditModal = true;
+        $this->resetErrorBag();
+    }
+
+    public function closeEditModal(): void
+    {
+        $this->showEditModal = false;
+        $this->editingTaskId = null;
+        $this->resetErrorBag();
+    }
+
+    public function saveTaskEdit(): void
+    {
+        if (! $this->editingTaskId) {
+            return;
+        }
+
+        $task = Task::query()->findOrFail($this->editingTaskId);
+        Gate::authorize('update', $task);
+
+        $this->validate([
+            'editTitle' => ['required', 'string', 'max:255'],
+            'editDescription' => ['nullable', 'string', 'max:5000'],
+            'editStatus' => ['required', 'in:'.implode(',', Task::workflowStatuses())],
+            'editPriority' => ['required', 'in:low,medium,high,urgent'],
+            'editDueDate' => ['nullable', 'date'],
+            'editAssignedTo' => ['nullable', 'exists:users,id'],
+        ]);
+
+        $task->update([
+            'judul' => trim($this->editTitle),
+            'deskripsi' => trim($this->editDescription) ?: null,
+            'status_tugas' => $this->editStatus,
+            'priority' => $this->editPriority,
+            'due_date' => $this->editDueDate ? date('Y-m-d H:i:s', strtotime($this->editDueDate)) : null,
+            'assigned_to' => $this->editAssignedTo,
+            'diperbarui' => now(),
+        ]);
+
+        $this->closeEditModal();
+        $this->dispatch('board-toast', type: 'success', message: 'Task berhasil diperbarui.');
+    }
+
+    public function confirmDeleteTask(int $taskId): void
+    {
+        $task = Task::query()->findOrFail($taskId);
+        Gate::authorize('update', $task);
+
+        $this->deletingTaskId = $task->id;
+        $this->showDeleteModal = true;
+    }
+
+    public function cancelDeleteTask(): void
+    {
+        $this->showDeleteModal = false;
+        $this->deletingTaskId = null;
+    }
+
+    public function deleteTask(): void
+    {
+        if (! $this->deletingTaskId) {
+            return;
+        }
+
+        $task = Task::query()->findOrFail($this->deletingTaskId);
+        Gate::authorize('update', $task);
+        $task->delete();
+
+        $this->cancelDeleteTask();
+        $this->dispatch('board-toast', type: 'success', message: 'Task berhasil dihapus.');
+    }
+
     public function render()
     {
         $statuses = Task::workflowStatuses();
@@ -135,6 +229,7 @@ class WorkflowBoard extends Component
         return view('livewire.workflow-board', [
             'statuses' => $statuses,
             'tasksByStatus' => $grouped,
+            'users' => \App\Models\User::query()->select('id', 'name')->orderBy('name')->get(),
         ])->layout('layouts.dashboard');
     }
 

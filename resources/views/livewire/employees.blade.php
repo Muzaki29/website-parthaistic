@@ -118,9 +118,9 @@
     @if($showCreateModal)
     <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" aria-hidden="true" wire:click="closeCreateModal"></div>
+            <div class="ui-modal-backdrop" aria-hidden="true" wire:click="closeCreateModal"></div>
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block transform overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-2xl transition-all dark:border-gray-700 dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+            <div class="ui-modal-shell sm:max-w-lg">
                 <div class="bg-linear-to-r from-primary to-blue-600 px-6 py-5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xl font-bold text-white" id="modal-title">Add New User</h3>
@@ -171,7 +171,7 @@
                         </svg>
                         Create User
                     </button>
-                    <button wire:click="closeCreateModal" type="button" class="ui-btn-secondary inline-flex w-full justify-center border-2 px-6 py-3 text-base sm:w-auto">
+                    <button wire:click="closeCreateModal" type="button" class="ui-btn-secondary inline-flex w-full justify-center px-6 py-3 text-base sm:w-auto">
                         Cancel
                     </button>
                 </div>
@@ -184,9 +184,9 @@
     @if($showModal)
     <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" aria-hidden="true" wire:click="closeModal"></div>
+            <div class="ui-modal-backdrop" aria-hidden="true" wire:click="closeModal"></div>
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block transform overflow-hidden rounded-2xl border border-gray-200 bg-white text-left shadow-2xl transition-all dark:border-gray-700 dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-lg sm:align-middle">
+            <div class="ui-modal-shell sm:max-w-lg">
                 <div class="bg-linear-to-r from-primary to-blue-600 px-6 py-5">
                     <div class="flex items-center justify-between">
                         <h3 class="text-xl font-bold text-white" id="modal-title">Edit Role: {{ $editingUser->name }}</h3>
@@ -214,7 +214,7 @@
                         </svg>
                         Save Changes
                     </button>
-                    <button wire:click="closeModal" type="button" class="ui-btn-secondary inline-flex w-full justify-center border-2 px-6 py-3 text-base sm:w-auto">
+                    <button wire:click="closeModal" type="button" class="ui-btn-secondary inline-flex w-full justify-center px-6 py-3 text-base sm:w-auto">
                         Cancel
                     </button>
                 </div>

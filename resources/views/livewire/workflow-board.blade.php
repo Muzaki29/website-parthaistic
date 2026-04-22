@@ -5,6 +5,7 @@
         sourceStatus: null,
         targetStatus: null,
         isSaving: false,
+        actionMenuTaskId: null,
         toast: { show: false, message: '', type: 'success' },
         toastTimer: null,
         showToast(message, type = 'success') {
@@ -84,9 +85,17 @@
                             >
                                 <div class="mb-2 flex items-center justify-between">
                                     <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">Drag card</span>
-                                    <svg class="h-4 w-4 text-gray-400 dark:text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 6h8M8 12h8M8 18h8"/>
-                                    </svg>
+                                    <div class="relative" @click.outside="actionMenuTaskId = null">
+                                        <button type="button" class="rounded-md p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200" @click.stop="actionMenuTaskId = actionMenuTaskId === {{ $task->id }} ? null : {{ $task->id }}">
+                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5h.01M12 12h.01M12 19h.01"/>
+                                            </svg>
+                                        </button>
+                                        <div x-show="actionMenuTaskId === {{ $task->id }}" x-cloak x-transition class="absolute right-0 z-20 mt-1 w-36 rounded-lg border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-700 dark:bg-gray-900">
+                                            <button type="button" class="block w-full rounded-md px-3 py-2 text-left text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800" @click="actionMenuTaskId = null; $wire.openEditModal({{ $task->id }})">Edit card</button>
+                                            <button type="button" class="block w-full rounded-md px-3 py-2 text-left text-xs font-semibold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20" @click="actionMenuTaskId = null; $wire.confirmDeleteTask({{ $task->id }})">Delete card</button>
+                                        </div>
+                                    </div>
                                 </div>
                                 <a href="{{ route('tasks.show', $task->id) }}" class="block">
                                     <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $task->judul }}</h3>
@@ -194,5 +203,94 @@
             <span x-text="toast.message"></span>
         </div>
     </div>
+
+    @if($showEditModal)
+    <div class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+        <div class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+            <div class="ui-modal-backdrop" wire:click="closeEditModal"></div>
+            <span class="hidden sm:inline-block sm:h-screen sm:align-middle">&#8203;</span>
+            <div class="ui-modal-shell text-left sm:max-w-2xl">
+                <div class="bg-linear-to-r from-primary to-blue-600 px-6 py-5">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-bold text-white">Edit Card</h3>
+                        <button wire:click="closeEditModal" class="text-white/80 hover:text-white">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <form wire:submit.prevent="saveTaskEdit" class="space-y-4 px-6 pb-6 pt-5">
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Title</label>
+                        <input type="text" wire:model="editTitle" class="ui-input py-3">
+                        @error('editTitle') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Description</label>
+                        <textarea wire:model="editDescription" rows="3" class="ui-input py-3"></textarea>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Status</label>
+                            <select wire:model="editStatus" class="ui-input py-3">
+                                @foreach($statuses as $status)
+                                    <option value="{{ $status }}">{{ $status }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Priority</label>
+                            <select wire:model="editPriority" class="ui-input py-3">
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Due date</label>
+                            <input type="datetime-local" wire:model="editDueDate" class="ui-input py-3">
+                        </div>
+                        <div>
+                            <label class="mb-2 block text-sm font-semibold text-gray-700 dark:text-gray-300">Assign to</label>
+                            <select wire:model="editAssignedTo" class="ui-input py-3">
+                                <option value="">Unassigned</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
+                        <button type="button" wire:click="closeEditModal" class="ui-btn-secondary px-5 py-2.5">Cancel</button>
+                        <button type="submit" class="ui-btn-primary px-5 py-2.5">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    @if($showDeleteModal)
+    <div class="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+        <div class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
+            <div class="ui-modal-backdrop" wire:click="cancelDeleteTask"></div>
+            <span class="hidden sm:inline-block sm:h-screen sm:align-middle">&#8203;</span>
+            <div class="ui-modal-shell text-left sm:max-w-md">
+                <div class="px-6 py-5">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Delete task?</h3>
+                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Task akan dihapus permanen dari board.</p>
+                </div>
+                <div class="flex flex-col-reverse gap-3 border-t border-gray-200 px-6 py-4 dark:border-gray-700 sm:flex-row sm:justify-end">
+                    <button type="button" wire:click="cancelDeleteTask" class="ui-btn-secondary px-4 py-2">Cancel</button>
+                    <button type="button" wire:click="deleteTask" class="ui-btn-danger px-4 py-2">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
 
