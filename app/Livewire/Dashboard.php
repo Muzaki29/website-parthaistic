@@ -54,27 +54,25 @@ class Dashboard extends Component
 
         // 1. Stats Cards
         $totalTasks = Task::count();
-        $totalDone = Task::where('status_tugas', 'Done')->count();
+        $totalDone = Task::where('status_tugas', Task::STATUS_FINISHED)->count();
         $percentageDone = $totalTasks > 0 ? round(($totalDone / $totalTasks) * 100, 1) : 0;
 
         // Simple heuristic for Overdue: Not done and not updated in 7 days
-        $overdueTasks = Task::where('status_tugas', '!=', 'Done')
+        $overdueTasks = Task::where('status_tugas', '!=', Task::STATUS_FINISHED)
             ->where('diperbarui', '<', now()->subDays(7))
             ->count();
 
         // Productivity Trend (Tasks done this week vs last week)
-        $doneThisWeek = Task::where('status_tugas', 'Done')->whereBetween('diperbarui', [now()->startOfWeek(), now()->endOfWeek()])->count();
-        $doneLastWeek = Task::where('status_tugas', 'Done')->whereBetween('diperbarui', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])->count();
+        $doneThisWeek = Task::where('status_tugas', Task::STATUS_FINISHED)->whereBetween('diperbarui', [now()->startOfWeek(), now()->endOfWeek()])->count();
+        $doneLastWeek = Task::where('status_tugas', Task::STATUS_FINISHED)->whereBetween('diperbarui', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()])->count();
         $trend = $doneThisWeek - $doneLastWeek;
         $trendText = $trend >= 0 ? "+{$trend} from last week" : "{$trend} from last week";
 
         // 2. Charts Data
         // Status Distribution
-        $statusCounts = [
-            'To Do' => Task::where('status_tugas', 'To Do')->count(),
-            'Doing' => Task::where('status_tugas', 'Doing')->count(),
-            'Done' => Task::where('status_tugas', 'Done')->count(),
-        ];
+        $statusCounts = collect(Task::workflowStatuses())
+            ->mapWithKeys(fn ($status) => [$status => Task::where('status_tugas', $status)->count()])
+            ->all();
 
         // Top Performers
         $topPerformers = User::withSum('statistics', 'total_done')
@@ -101,6 +99,8 @@ class Dashboard extends Component
             'overdueTasks' => $overdueTasks,
             'trendText' => $trendText,
             'statusCounts' => $statusCounts,
+            'statusLabels' => array_keys($statusCounts),
+            'statusValues' => array_values($statusCounts),
             'topPerformers' => $topPerformers,
             'activityData' => $activityData,
             'unreadNotifications' => $unreadNotifications,

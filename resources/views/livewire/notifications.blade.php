@@ -9,14 +9,14 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
             <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2 transition-colors duration-300">Notifications</h1>
-            <p class="text-gray-600 dark:text-gray-400 transition-colors duration-300">Stay updated with your latest activities and updates</p>
+            <p class="text-gray-700 dark:text-gray-400 transition-colors duration-300">Stay updated with your latest activities and updates</p>
         </div>
         
         <div class="flex items-center gap-3">
-            <button wire:click="markAllAsRead" type="button" class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition-all duration-300">
+            <button wire:click="markAllAsRead" type="button" class="ui-btn-secondary px-4 py-2 text-sm">
                 Mark all as read
             </button>
-            <button wire:click="clearAll" type="button" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-primary to-blue-600 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-primary/20 duration-300">
+            <button wire:click="clearAll" type="button" class="ui-btn-primary px-4 py-2 text-sm">
                 Clear all
             </button>
         </div>
@@ -25,7 +25,7 @@
     <!-- Notifications List -->
     <div class="space-y-3">
         @forelse($notificationRows as $notification)
-        <div class="group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 overflow-hidden {{ !$notification['read'] ? 'ring-2 ring-primary/20 bg-blue-50/30 dark:bg-blue-900/20' : '' }}">
+        <div class="ui-card group relative overflow-hidden transition-all duration-300 {{ !$notification['read'] ? 'ring-2 ring-primary/20 bg-blue-50/30 dark:bg-blue-900/20' : '' }}">
             <div class="p-6">
                 <div class="flex items-start gap-4">
                     <!-- Icon -->
@@ -79,12 +79,12 @@
                                     </span>
                                     @endif
                                 </div>
-                                <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-2 transition-colors duration-300">
+                                <p class="mb-2 text-sm leading-relaxed text-gray-600 transition-colors duration-300 dark:text-gray-300">
                                     {{ $notification['message'] }}
                                 </p>
-                                <div class="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500 transition-colors duration-300">
+                                <div class="flex items-center gap-4 text-xs font-medium text-gray-600 dark:text-gray-400 transition-colors duration-300">
                                     <span class="flex items-center gap-1">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="h-4 w-4 shrink-0 text-gray-500 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
                                         {{ $notification['time'] }}
@@ -95,7 +95,7 @@
                             
                             <!-- Action Button -->
                             <div class="flex-shrink-0">
-                                <button wire:click="dismissNotification({{ $notification['id'] }})" type="button" class="p-2 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300" aria-label="Dismiss notification">
+                                <button wire:click="dismissNotification({{ $notification['id'] }})" type="button" class="ui-btn-secondary rounded-lg p-2 text-gray-600 dark:text-gray-400" aria-label="Dismiss notification">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                     </svg>
@@ -107,7 +107,7 @@
             </div>
         </div>
         @empty
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-12 text-center transition-all duration-300">
+        <div class="ui-empty-state p-12 transition-all duration-300">
             <div class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
                 <svg class="w-24 h-24 mb-6 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>

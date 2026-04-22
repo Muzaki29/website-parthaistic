@@ -18,7 +18,7 @@
                     name="q"
                     value="{{ $q }}"
                     placeholder="Cari nama/email/perusahaan..."
-                    class="w-72 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                    class="w-full sm:w-72 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 >
                 <select name="status" class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100">
                     <option value="">Semua status</option>
@@ -45,17 +45,17 @@
                 <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-50 dark:bg-gray-900/40">
                         <tr>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Status</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Tanggal</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Nama</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Email</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Perusahaan</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Brief</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Assignee</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Aksi cepat</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Status</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Tanggal</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Nama</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Email</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Perusahaan</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Brief</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Assignee</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Aksi cepat</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                         @forelse ($leads as $lead)
                             <tr class="align-top hover:bg-gray-50 dark:hover:bg-gray-900/20">
                                 <td class="px-4 py-3 text-sm">
@@ -72,7 +72,7 @@
                                     @endphp
                                     <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize {{ $badge }}">{{ str_replace('_', ' ', $lead->status) }}</span>
                                 </td>
-                                <td class="px-4 py-3 text-sm text-gray-500">{{ $lead->last_activity_at?->format('d M Y H:i') ?? $lead->created_at?->format('d M Y H:i') }}</td>
+                                <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">{{ $lead->last_activity_at?->format('d M Y H:i') ?? $lead->created_at?->format('d M Y H:i') }}</td>
                                 <td class="px-4 py-3 text-sm font-semibold text-gray-800 dark:text-gray-100">{{ $lead->name }}</td>
                                 <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
                                     <a class="hover:underline" href="mailto:{{ $lead->email }}">{{ $lead->email }}</a>
@@ -88,7 +88,7 @@
                                     {{ $lead->assignee?->name ?? '—' }}
                                 </td>
                                 <td class="px-4 py-3 text-sm">
-                                    <div class="flex flex-col gap-2 min-w-[200px]">
+                                    <div class="min-w-[180px] flex flex-col gap-2">
                                         <form action="{{ route('admin.leads.update', $lead) }}" method="POST" class="inline">
                                             @csrf
                                             @method('PATCH')
@@ -147,7 +147,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-4 py-8 text-center text-sm text-gray-500">Belum ada lead masuk.</td>
+                                <td colspan="8" class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Belum ada lead masuk.</td>
                             </tr>
                         @endforelse
                     </tbody>

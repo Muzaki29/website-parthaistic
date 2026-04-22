@@ -3,7 +3,10 @@
 namespace App\Providers;
 
 use App\Models\UserNotification;
+use App\Models\Task;
+use App\Policies\TaskPolicy;
 use App\Services\UserNotificationService;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(Task::class, TaskPolicy::class);
+
         View::composer('layouts.navigation', function ($view) {
             if (! auth()->check()) {
                 $view->with([

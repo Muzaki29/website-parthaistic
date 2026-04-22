@@ -3,13 +3,13 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Task Details</h1>
-            <p class="text-gray-600 dark:text-gray-400">View and manage task information</p>
+            <p class="text-gray-700 dark:text-gray-400">View and manage task information</p>
         </div>
-        <div class="flex items-center gap-3">
-            <button wire:click="toggleEdit" class="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+        <div class="flex flex-wrap items-center gap-3">
+            <button wire:click="toggleEdit" class="ui-btn-secondary border-2 px-4 py-2 text-sm">
                 {{ $editing ? 'Cancel' : 'Edit Task' }}
             </button>
-            <a href="{{ route('reports') }}" class="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-primary to-blue-600 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-primary/20">
+            <a href="{{ route('reports') }}" class="ui-btn-primary px-4 py-2 text-sm">
                 Back to Reports
             </a>
         </div>
@@ -28,38 +28,38 @@
         <!-- Main Content -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Task Info Card -->
-            <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-6">
+            <div class="ui-card p-6">
                 @if($editing)
                 <form wire:submit.prevent="updateTask" class="space-y-6">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Task Title</label>
-                        <input type="text" wire:model="judul" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:bg-white dark:focus:bg-gray-600 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none text-gray-900 dark:text-white">
+                        <input type="text" wire:model="judul" class="ui-input py-3">
                         @error('judul') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description</label>
-                        <textarea wire:model="deskripsi" rows="4" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:bg-white dark:focus:bg-gray-600 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none text-gray-900 dark:text-white"></textarea>
+                        <textarea wire:model="deskripsi" rows="4" class="ui-input py-3"></textarea>
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Notes</label>
-                        <textarea wire:model="notes" rows="3" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:bg-white dark:focus:bg-gray-600 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none text-gray-900 dark:text-white"></textarea>
+                        <textarea wire:model="notes" rows="3" class="ui-input py-3"></textarea>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Status</label>
-                            <select wire:model="status_tugas" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:bg-white dark:focus:bg-gray-600 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none text-gray-900 dark:text-white">
-                                <option value="To Do">To Do</option>
-                                <option value="Doing">Doing</option>
-                                <option value="Done">Done</option>
+                            <select wire:model="status_tugas" class="ui-input py-3">
+                                @foreach($statuses as $status)
+                                    <option value="{{ $status }}">{{ $status }}</option>
+                                @endforeach
                             </select>
                         </div>
 
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Priority</label>
-                            <select wire:model="priority" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:bg-white dark:focus:bg-gray-600 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none text-gray-900 dark:text-white">
+                            <select wire:model="priority" class="ui-input py-3">
                                 <option value="low">Low</option>
                                 <option value="medium">Medium</option>
                                 <option value="high">High</option>
@@ -68,15 +68,15 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Due Date</label>
-                            <input type="datetime-local" wire:model="due_date" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:bg-white dark:focus:bg-gray-600 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none text-gray-900 dark:text-white">
+                            <input type="datetime-local" wire:model="due_date" class="ui-input py-3">
                         </div>
 
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Assign To</label>
-                            <select wire:model="assigned_to" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:bg-white dark:focus:bg-gray-600 focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200 outline-none text-gray-900 dark:text-white">
+                            <select wire:model="assigned_to" class="ui-input py-3">
                                 <option value="">Unassigned</option>
                                 @foreach($users as $user)
                                     <option value="{{ $user->id }}">{{ $user->name }}</option>
@@ -85,7 +85,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full py-3 px-4 bg-gradient-to-r from-primary to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl transition-all duration-300">
+                    <button type="submit" class="ui-btn-primary w-full py-3 px-4">
                         Save Changes
                     </button>
                 </form>
@@ -94,7 +94,7 @@
                     <div>
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ $task->judul }}</h2>
                         @if($task->deskripsi)
-                            <p class="text-gray-600 dark:text-gray-400 leading-relaxed">{{ $task->deskripsi }}</p>
+                            <p class="leading-relaxed text-gray-700 dark:text-gray-300">{{ $task->deskripsi }}</p>
                         @endif
                     </div>
 
@@ -105,16 +105,22 @@
                     </div>
                     @endif
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Status</label>
+                            <label class="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400">Status</label>
                             @php
                                 $statusConfig = [
-                                    'To Do' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-800'],
-                                    'Doing' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800'],
-                                    'Done' => ['bg' => 'bg-green-100', 'text' => 'text-green-800'],
+                                    'Drop idea' => ['bg' => 'bg-slate-100 dark:bg-slate-700', 'text' => 'text-slate-800 dark:text-slate-300'],
+                                    'Script idea' => ['bg' => 'bg-violet-100 dark:bg-violet-900/30', 'text' => 'text-violet-800 dark:text-violet-300'],
+                                    'Script written' => ['bg' => 'bg-indigo-100 dark:bg-indigo-900/30', 'text' => 'text-indigo-800 dark:text-indigo-300'],
+                                    'Script preview' => ['bg' => 'bg-sky-100 dark:bg-sky-900/30', 'text' => 'text-sky-800 dark:text-sky-300'],
+                                    'Crew call shooting' => ['bg' => 'bg-amber-100 dark:bg-amber-900/30', 'text' => 'text-amber-800 dark:text-amber-300'],
+                                    'Production' => ['bg' => 'bg-orange-100 dark:bg-orange-900/30', 'text' => 'text-orange-800 dark:text-orange-300'],
+                                    'Post - Production' => ['bg' => 'bg-pink-100 dark:bg-pink-900/30', 'text' => 'text-pink-800 dark:text-pink-300'],
+                                    'Preview' => ['bg' => 'bg-cyan-100 dark:bg-cyan-900/30', 'text' => 'text-cyan-800 dark:text-cyan-300'],
+                                    'Finished' => ['bg' => 'bg-green-100 dark:bg-green-900/30', 'text' => 'text-green-800 dark:text-green-300'],
                                 ];
-                                $config = $statusConfig[$task->status_tugas] ?? $statusConfig['To Do'];
+                                $config = $statusConfig[$task->status_tugas] ?? $statusConfig['Drop idea'];
                             @endphp
                             <p class="mt-1 inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-semibold {{ $config['bg'] }} {{ $config['text'] }}">
                                 {{ $task->status_tugas }}
@@ -122,13 +128,13 @@
                         </div>
 
                         <div>
-                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Priority</label>
+                            <label class="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400">Priority</label>
                             @php
                                 $priorityConfig = [
-                                    'low' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-700', 'label' => 'Low'],
-                                    'medium' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-700', 'label' => 'Medium'],
-                                    'high' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-700', 'label' => 'High'],
-                                    'urgent' => ['bg' => 'bg-red-100', 'text' => 'text-red-700', 'label' => 'Urgent'],
+                                    'low' => ['bg' => 'bg-gray-100 dark:bg-gray-700', 'text' => 'text-gray-700 dark:text-gray-300', 'label' => 'Low'],
+                                    'medium' => ['bg' => 'bg-blue-100 dark:bg-blue-900/30', 'text' => 'text-blue-700 dark:text-blue-300', 'label' => 'Medium'],
+                                    'high' => ['bg' => 'bg-orange-100 dark:bg-orange-900/30', 'text' => 'text-orange-700 dark:text-orange-300', 'label' => 'High'],
+                                    'urgent' => ['bg' => 'bg-red-100 dark:bg-red-900/30', 'text' => 'text-red-700 dark:text-red-300', 'label' => 'Urgent'],
                                 ];
                                 $priority = $task->priority ?? 'medium';
                                 $priorityData = $priorityConfig[$priority] ?? $priorityConfig['medium'];
@@ -139,16 +145,16 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Due Date</label>
+                            <label class="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400">Due Date</label>
                             <p class="mt-1 text-sm font-medium text-gray-900 dark:text-white">
                                 {{ $task->due_date ? $task->due_date->format('d M Y, H:i') : 'No due date' }}
                             </p>
                         </div>
 
                         <div>
-                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Assigned To</label>
+                            <label class="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400">Assigned To</label>
                             <p class="mt-1 text-sm font-medium text-gray-900 dark:text-white">
                                 {{ $task->user ? $task->user->name : 'Unassigned' }}
                             </p>
@@ -159,13 +165,13 @@
             </div>
 
             <!-- Files Section -->
-            <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-6">
+            <div class="ui-card p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Attachments</h3>
                 
                 <form wire:submit.prevent="uploadFiles" class="mb-6">
                     <div class="flex items-center gap-3">
-                        <input type="file" wire:model="files" multiple class="flex-1 px-4 py-2 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-700 dark:text-gray-300">
-                        <button type="submit" class="px-6 py-2 bg-gradient-to-r from-primary to-blue-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all">
+                        <input type="file" wire:model="files" multiple class="min-h-[42px] flex-1 rounded-xl border-2 border-gray-300 bg-gray-50 text-sm text-gray-800 file:mr-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:file:bg-indigo-900/40 dark:file:text-indigo-200">
+                        <button type="submit" class="ui-btn-primary px-6 py-2">
                             Upload
                         </button>
                     </div>
@@ -176,24 +182,24 @@
                     @forelse($uploadedFiles as $file)
                     <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                         <div class="flex items-center gap-3 flex-1">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="h-5 w-5 shrink-0 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
                             <div class="flex-1 min-w-0">
                                 <p class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ $file->file_name }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    {{ number_format($file->file_size / 1024, 2) }} KB • 
+                                <p class="text-xs text-gray-600 dark:text-gray-400">
+                                    {{ number_format($file->file_size / 1024, 2) }} KB •
                                     Uploaded by {{ $file->uploader->name ?? 'Unknown' }}
                                 </p>
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <a href="{{ asset('storage/' . $file->file_path) }}" target="_blank" class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                            <a href="{{ asset('storage/' . $file->file_path) }}" target="_blank" class="rounded-lg p-2 text-primary transition-colors hover:bg-primary/10">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                                 </svg>
                             </a>
-                            <button wire:click="deleteFile({{ $file->id }})" onclick="return confirm('Are you sure?')" class="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                            <button wire:click="deleteFile({{ $file->id }})" onclick="return confirm('Are you sure?')" class="rounded-lg p-2 text-red-600 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
@@ -201,7 +207,7 @@
                         </div>
                     </div>
                     @empty
-                    <p class="text-sm text-gray-500 dark:text-gray-400 text-center py-8">No files attached</p>
+                    <p class="py-8 text-center text-sm font-medium text-gray-600 dark:text-gray-400">No files attached</p>
                     @endforelse
                 </div>
             </div>
@@ -210,25 +216,25 @@
         <!-- Sidebar -->
         <div class="space-y-6">
             <!-- Task Info -->
-            <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-6">
+            <div class="ui-card p-6">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Task Information</h3>
                 <div class="space-y-4">
                     <div>
-                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Created</label>
+                        <label class="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400">Created</label>
                         <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ $task->dibuat->format('d M Y, H:i') }}</p>
                     </div>
                     <div>
-                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Last Updated</label>
+                        <label class="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400">Last Updated</label>
                         <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ $task->diperbarui->format('d M Y, H:i') }}</p>
                     </div>
                     @if($task->user)
                     <div>
-                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Assigned To</label>
+                        <label class="text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-400">Assigned To</label>
                         <div class="mt-2 flex items-center gap-2">
                             <img class="w-8 h-8 rounded-lg" src="https://ui-avatars.com/api/?name={{ urlencode($task->user->name) }}&background=0652FD&color=fff" alt="">
                             <div>
                                 <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $task->user->name }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $task->user->jabatan ?? 'Team Member' }}</p>
+                                <p class="text-xs text-gray-600 dark:text-gray-400">{{ $task->user->jabatan ?? 'Team Member' }}</p>
                             </div>
                         </div>
                     </div>

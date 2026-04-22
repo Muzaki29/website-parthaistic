@@ -1,6 +1,6 @@
 <div :class="sidebarOpen ? 'block' : 'hidden'" @click="sidebarOpen = false" class="fixed inset-0 z-20 transition-opacity bg-black/60 backdrop-blur-sm lg:hidden"></div>
 
-<aside :class="sidebarOpen ? 'translate-x-0 ease-out' : '-translate-x-full ease-in'" class="fixed inset-y-0 left-0 z-30 w-72 overflow-y-auto transition-all duration-300 transform bg-gradient-to-b from-white dark:from-gray-800 to-gray-50/50 dark:to-gray-900/50 shadow-2xl lg:translate-x-0 lg:static lg:inset-0 flex flex-col border-r border-gray-200/50 dark:border-gray-700/50">
+<aside :class="sidebarOpen ? 'translate-x-0 ease-out' : '-translate-x-full ease-in'" class="fixed inset-y-0 left-0 z-30 flex w-72 transform flex-col overflow-y-auto border-r border-gray-200/50 bg-gradient-to-b from-white to-gray-50/50 shadow-2xl transition-all duration-300 dark:border-gray-700/50 dark:from-gray-800 dark:to-gray-900/50 lg:static lg:inset-0 lg:translate-x-0">
     <div class="flex items-center justify-between p-6 border-b border-gray-200/50 dark:border-gray-700/50 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm transition-colors duration-300">
         <div class="flex flex-col items-start space-y-2 flex-1">
             <div class="flex items-center gap-3">
@@ -13,7 +13,7 @@
                 </div>
             </div>
         </div>
-        <button @click="sidebarOpen = false" class="lg:hidden p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200 transition-all duration-200 focus:outline-none">
+        <button @click="sidebarOpen = false" class="ui-btn-secondary p-2 lg:hidden" aria-label="Close sidebar">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
@@ -21,10 +21,21 @@
     </div>
 
     <nav class="mt-4 flex-1 px-3">
+        @php
+            $baseLinkClass = 'group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300';
+            $activeLinkClass = 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/25';
+            $inactiveLinkClass = 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white';
+            $baseIconClass = 'p-2 rounded-lg transition-all duration-300';
+            $activeIconClass = 'bg-white/25 text-white';
+            $inactiveIconClass = 'bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600';
+            $baseSvgClass = 'w-5 h-5 transition-colors duration-300';
+            $activeSvgClass = 'text-white';
+            $inactiveSvgClass = 'text-gray-600 dark:text-gray-300';
+        @endphp
         <div class="space-y-1">
-            <a href="{{ route('dashboard') }}" class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('dashboard') ? 'bg-gradient-to-r from-primary to-blue-600 text-white shadow-lg shadow-primary/20' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' }}">
-                <div class="p-2 rounded-lg transition-all duration-300 {{ request()->routeIs('dashboard') ? 'bg-white/20' : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600' }}">
-                    <svg class="w-5 h-5 transition-colors duration-300 {{ request()->routeIs('dashboard') ? 'text-white' : 'text-gray-600 dark:text-gray-300' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="{{ route('dashboard') }}" class="{{ $baseLinkClass }} {{ request()->routeIs('dashboard') ? $activeLinkClass : $inactiveLinkClass }}">
+                <div class="{{ $baseIconClass }} {{ request()->routeIs('dashboard') ? $activeIconClass : $inactiveIconClass }}">
+                    <svg class="{{ $baseSvgClass }} {{ request()->routeIs('dashboard') ? $activeSvgClass : $inactiveSvgClass }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
                     </svg>
                 </div>
@@ -32,9 +43,9 @@
             </a>
             
             @if(auth()->check() && auth()->user()->role === 'admin')
-            <a href="{{ route('employees') }}" class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('employees') ? 'bg-gradient-to-r from-primary to-blue-600 text-white shadow-lg shadow-primary/20' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' }}">
-                <div class="p-2 rounded-lg transition-all duration-300 {{ request()->routeIs('employees') ? 'bg-white/20' : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600' }}">
-                    <svg class="w-5 h-5 transition-colors duration-300 {{ request()->routeIs('employees') ? 'text-white' : 'text-gray-600 dark:text-gray-300' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="{{ route('employees') }}" class="{{ $baseLinkClass }} {{ request()->routeIs('employees') ? $activeLinkClass : $inactiveLinkClass }}">
+                <div class="{{ $baseIconClass }} {{ request()->routeIs('employees') ? $activeIconClass : $inactiveIconClass }}">
+                    <svg class="{{ $baseSvgClass }} {{ request()->routeIs('employees') ? $activeSvgClass : $inactiveSvgClass }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                     </svg>
                 </div>
@@ -42,18 +53,27 @@
             </a>
             @endif
 
-            <a href="{{ route('reports') }}" class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('reports') ? 'bg-gradient-to-r from-primary to-blue-600 text-white shadow-lg shadow-primary/20' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' }}">
-                <div class="p-2 rounded-lg transition-all duration-300 {{ request()->routeIs('reports') ? 'bg-white/20' : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600' }}">
-                    <svg class="w-5 h-5 transition-colors duration-300 {{ request()->routeIs('reports') ? 'text-white' : 'text-gray-600 dark:text-gray-300' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="{{ route('reports') }}" class="{{ $baseLinkClass }} {{ request()->routeIs('reports') ? $activeLinkClass : $inactiveLinkClass }}">
+                <div class="{{ $baseIconClass }} {{ request()->routeIs('reports') ? $activeIconClass : $inactiveIconClass }}">
+                    <svg class="{{ $baseSvgClass }} {{ request()->routeIs('reports') ? $activeSvgClass : $inactiveSvgClass }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                 </div>
                 <span class="font-semibold text-sm">Laporan</span>
             </a>
+
+            <a href="{{ route('workflow.board') }}" class="{{ $baseLinkClass }} {{ request()->routeIs('workflow.board') ? $activeLinkClass : $inactiveLinkClass }}">
+                <div class="{{ $baseIconClass }} {{ request()->routeIs('workflow.board') ? $activeIconClass : $inactiveIconClass }}">
+                    <svg class="{{ $baseSvgClass }} {{ request()->routeIs('workflow.board') ? $activeSvgClass : $inactiveSvgClass }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17H7a2 2 0 01-2-2V5a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2h-2M9 9h6M9 13h6M9 21h6"></path>
+                    </svg>
+                </div>
+                <span class="font-semibold text-sm">Workflow Board</span>
+            </a>
             
-            <a href="{{ route('notifications') }}" class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 {{ request()->routeIs('notifications') ? 'bg-gradient-to-r from-primary to-blue-600 text-white shadow-lg shadow-primary/20' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white' }}">
-                <div class="p-2 rounded-lg transition-all duration-300 {{ request()->routeIs('notifications') ? 'bg-white/20' : 'bg-gray-100 dark:bg-gray-700 group-hover:bg-gray-200 dark:group-hover:bg-gray-600' }}">
-                    <svg class="w-5 h-5 transition-colors duration-300 {{ request()->routeIs('notifications') ? 'text-white' : 'text-gray-600 dark:text-gray-300' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="{{ route('notifications') }}" class="{{ $baseLinkClass }} {{ request()->routeIs('notifications') ? $activeLinkClass : $inactiveLinkClass }}">
+                <div class="{{ $baseIconClass }} {{ request()->routeIs('notifications') ? $activeIconClass : $inactiveIconClass }}">
+                    <svg class="{{ $baseSvgClass }} {{ request()->routeIs('notifications') ? $activeSvgClass : $inactiveSvgClass }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                     </svg>
                 </div>
@@ -75,7 +95,7 @@
                     <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed transition-colors duration-300">Hubungi tim support kami untuk bantuan lebih lanjut.</p>
                 </div>
             </div>
-            <button @click="showContactModal = true" class="w-full py-2.5 px-4 bg-gradient-to-r from-primary to-blue-600 text-white text-xs font-bold rounded-xl shadow-md shadow-primary/20 hover:shadow-lg hover:from-blue-600 hover:to-blue-700 transition-all duration-200 transform hover:-translate-y-0.5">
+            <button @click="showContactModal = true" class="ui-btn-primary w-full py-2.5 px-4 text-xs font-bold">
                 Contact Support
             </button>
         </div>

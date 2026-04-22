@@ -23,7 +23,7 @@
     class="flex items-center justify-between px-6 py-4 border-b sticky top-0 z-40 transition-all duration-300"
 >
     <div class="flex items-center">
-        <button @click="sidebarOpen = true" class="text-gray-500 dark:text-gray-400 focus:outline-none lg:hidden mr-4 transition-colors duration-300 hover:text-gray-700 dark:hover:text-gray-200">
+        <button @click="sidebarOpen = true" class="ui-btn-secondary mr-4 p-2 lg:hidden" aria-label="Open sidebar">
             <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M4 6H20M4 12H20M4 18H11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -37,7 +37,7 @@
 
     <div class="flex items-center space-x-4">
         <!-- Dark Mode Toggle -->
-        <button @click="toggleDarkMode()" class="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300">
+        <button @click="toggleDarkMode()" class="ui-btn-secondary p-2 text-gray-500 dark:text-gray-300" aria-label="Toggle dark mode">
             <svg x-show="!darkMode" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
             </svg>
@@ -48,7 +48,7 @@
         
         <!-- Notification Bell -->
         <div class="relative" x-data="{ notifOpen: false }">
-            <button @click="notifOpen = !notifOpen" class="relative flex items-center text-gray-500 dark:text-gray-400 hover:text-primary focus:outline-none transition-colors p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
+            <button @click="notifOpen = !notifOpen" class="ui-btn-secondary relative flex items-center p-2 text-gray-500 hover:text-primary dark:text-gray-300">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                 </svg>
@@ -65,9 +65,9 @@
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="transform opacity-100 scale-100 translate-y-0"
                  x-transition:leave-end="transform opacity-0 scale-95 translate-y-2"
-                 @click.away="notifOpen = false" 
-                 class="absolute right-0 w-96 mt-2 origin-top-right bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-2xl shadow-2xl overflow-hidden z-50 border border-gray-200 dark:border-gray-700 transition-all duration-300" 
-                 style="display: none; max-height: 500px; overflow-y: auto;">
+                 @click.away="notifOpen = false"
+                 class="absolute right-0 z-50 mt-2 w-[min(22rem,calc(100vw-1.5rem))] origin-top-right overflow-hidden rounded-2xl border border-gray-200 bg-white/95 shadow-2xl backdrop-blur-md transition-all duration-300 dark:border-gray-700 dark:bg-gray-800/95"
+                 style="display: none; max-height: min(500px, calc(100vh - 6.5rem)); overflow-y: auto;">
                 <!-- Header -->
                 <div class="sticky top-0 bg-gradient-to-r from-primary to-blue-600 px-5 py-4 border-b border-primary/20">
                     <div class="flex items-center justify-between">
@@ -85,7 +85,7 @@
                             </div>
                         </div>
                         @if(($navUnreadCount ?? 0) > 0)
-                        <a href="{{ route('notifications') }}" class="text-xs text-white/80 hover:text-white font-semibold px-3 py-1 rounded-lg hover:bg-white/10 transition-colors">
+                        <a href="{{ route('notifications') }}" class="rounded-lg px-3 py-1 text-xs font-semibold text-white/80 transition-colors hover:bg-white/10 hover:text-white">
                             Manage notifications
                         </a>
                         @endif
@@ -96,7 +96,7 @@
                 <div class="py-2">
                     @forelse($navNotifications ?? [] as $notification)
                     <a href="{{ $notification['url'] }}" 
-                       class="group relative block px-5 py-4 hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-all duration-300 border-b border-gray-100/50 dark:border-gray-700/50 {{ !$notification['read'] ? 'bg-blue-50/30 dark:bg-blue-900/20' : '' }}">
+                       class="group relative block px-5 py-4 hover:bg-gray-50/80 dark:hover:bg-gray-700/50 transition-all duration-300 border-b border-gray-200/50 dark:border-gray-700/50 {{ !$notification['read'] ? 'bg-blue-50/30 dark:bg-blue-900/20' : '' }}">
                         <div class="flex items-start gap-3">
                             <!-- Icon -->
                             <div class="flex-shrink-0 mt-0.5">
@@ -190,7 +190,7 @@
                 <div class="text-xs text-primary dark:text-blue-400 font-semibold uppercase tracking-wide bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full inline-block transition-all duration-300">{{ auth()->user()->role }}</div>
                 @endif
              </div>
-             <button class="relative block w-10 h-10 overflow-hidden rounded-full border-2 border-white dark:border-gray-700 shadow-md focus:outline-none hover:ring-2 hover:ring-primary hover:ring-offset-2 transition-all duration-300">
+             <button class="relative block h-10 w-10 overflow-hidden rounded-full border-2 border-white shadow-md transition-all duration-300 hover:ring-2 hover:ring-primary hover:ring-offset-2 focus:outline-none dark:border-gray-700">
                 <img class="object-cover w-full h-full" src="https://ui-avatars.com/api/?name={{ auth()->check() ? urlencode(auth()->user()->name) : 'User' }}&background=0652FD&color=fff" alt="Avatar">
              </button>
 
@@ -203,23 +203,23 @@
                  x-transition:leave-start="transform opacity-100 scale-100"
                  x-transition:leave-end="transform opacity-0 scale-95"
                  @click.away="dropdownOpen = false" 
-                 class="absolute right-0 w-48 mt-2 top-12 bg-white dark:bg-gray-800 rounded-md shadow-xl z-50 py-1 border border-gray-100 dark:border-gray-700 transition-all duration-300" style="display: none;">
+                 class="absolute right-0 top-12 z-50 mt-2 w-52 rounded-xl border border-gray-200 bg-white py-1 shadow-xl transition-all duration-300 dark:border-gray-700 dark:bg-gray-800" style="display: none;">
                 
-                <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-700 md:hidden transition-colors duration-300">
+                <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 md:hidden transition-colors duration-300">
                     @if(auth()->check())
                     <div class="text-sm font-bold text-gray-800 dark:text-white transition-colors duration-300">{{ auth()->user()->name }}</div>
                     <div class="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-300">{{ auth()->user()->role }}</div>
                     @endif
                 </div>
 
-                <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-primary transition-all duration-300 flex items-center">
+                <a href="{{ route('profile.edit') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 transition-all duration-300 hover:bg-blue-50 hover:text-primary dark:text-gray-300 dark:hover:bg-gray-700">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     Edit Profile
                 </a>
                 
                 <form method="POST" action="{{ route('logout') }}" class="block">
                     @csrf 
-                    <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-300 flex items-center">
+                    <button type="submit" class="flex w-full items-center px-4 py-2 text-left text-sm text-red-600 transition-all duration-300 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                         Logout
                     </button>

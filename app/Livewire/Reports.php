@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Exports\TasksExport;
 use App\Models\Task;
 use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
@@ -47,6 +48,12 @@ class Reports extends Component
     public function bulkUpdateStatus($status)
     {
         $this->authorizeBulkActions();
+
+        if (! in_array($status, Task::workflowStatuses(), true)) {
+            session()->flash('error', 'Status workflow tidak valid.');
+
+            return;
+        }
 
         if (empty($this->selectedTasks)) {
             session()->flash('error', 'Please select at least one task.');
@@ -112,10 +119,7 @@ class Reports extends Component
 
     protected function authorizeBulkActions(): void
     {
-        $role = auth()->user()?->role;
-        if (! in_array($role, ['admin', 'manager'], true)) {
-            abort(403, 'Anda tidak memiliki izin untuk aksi massal.');
-        }
+        Gate::authorize('bulkManage', Task::class);
     }
 
     public function export()
@@ -136,6 +140,7 @@ class Reports extends Component
         return view('livewire.reports', [
             'tasks' => $tasks,
             'users' => $users,
+            'statuses' => Task::workflowStatuses(),
         ])->layout('layouts.dashboard');
     }
 }

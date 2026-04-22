@@ -7,16 +7,17 @@
         </div>
         
         <!-- Export Button -->
-        <button wire:click="export" class="group relative overflow-hidden bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg shadow-green-500/20 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5 flex items-center gap-2">
+        <button wire:click="export" wire:loading.attr="disabled" wire:target="export" class="group relative flex items-center gap-2 overflow-hidden rounded-xl bg-linear-to-r from-green-600 to-emerald-600 px-6 py-3 font-semibold text-white shadow-lg shadow-green-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:from-green-700 hover:to-emerald-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
-            <span>Export Excel</span>
+            <span wire:loading.remove wire:target="export">Export Excel</span>
+            <span wire:loading wire:target="export">Exporting...</span>
         </button>
     </div>
 
     <!-- Filter Card -->
-    <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-6 transition-all duration-300">
+    <div class="ui-card p-6 transition-all duration-300">
         <div class="flex items-center gap-3 mb-6">
             <div class="p-2 rounded-lg bg-primary/10 dark:bg-primary/20 transition-colors duration-300">
                 <svg class="w-6 h-6 text-primary dark:text-blue-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,7 +39,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
-                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search by title or description..." class="w-full pl-12 pr-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-xl focus:bg-white dark:focus:bg-gray-600 focus:border-primary dark:focus:border-blue-500 focus:ring-4 focus:ring-primary/10 dark:focus:ring-blue-500/20 transition-all duration-300 outline-none">
+                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search by title or description..." class="ui-input pl-12 py-3 placeholder-gray-400 dark:placeholder-gray-500">
                 </div>
             </div>
 
@@ -47,17 +48,17 @@
                 <!-- Date Range -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">Start Date</label>
-                    <input type="date" wire:model.live="startDate" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl focus:bg-white dark:focus:bg-gray-600 focus:border-primary dark:focus:border-blue-500 focus:ring-4 focus:ring-primary/10 dark:focus:ring-blue-500/20 transition-all duration-300 outline-none">
+                    <input type="date" wire:model.live="startDate" class="ui-input py-3">
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">End Date</label>
-                    <input type="date" wire:model.live="endDate" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl focus:bg-white dark:focus:bg-gray-600 focus:border-primary dark:focus:border-blue-500 focus:ring-4 focus:ring-primary/10 dark:focus:ring-blue-500/20 transition-all duration-300 outline-none">
+                    <input type="date" wire:model.live="endDate" class="ui-input py-3">
                 </div>
 
                 <!-- User Filter -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">Employee</label>
-                    <select wire:model.live="userId" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl focus:bg-white dark:focus:bg-gray-600 focus:border-primary dark:focus:border-blue-500 focus:ring-4 focus:ring-primary/10 dark:focus:ring-blue-500/20 transition-all duration-300 outline-none">
+                    <select wire:model.live="userId" class="ui-input py-3">
                         <option value="">All Employees</option>
                         @foreach($users as $user)
                             <option value="{{ $user->id }}">{{ $user->name }}</option>
@@ -68,18 +69,18 @@
                 <!-- Status Filter -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">Status</label>
-                    <select wire:model.live="status" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl focus:bg-white dark:focus:bg-gray-600 focus:border-primary dark:focus:border-blue-500 focus:ring-4 focus:ring-primary/10 dark:focus:ring-blue-500/20 transition-all duration-300 outline-none">
+                    <select wire:model.live="status" class="ui-input py-3">
                         <option value="">All Status</option>
-                        <option value="To Do">To Do</option>
-                        <option value="Doing">Doing</option>
-                        <option value="Done">Done</option>
+                        @foreach($statuses as $statusOption)
+                            <option value="{{ $statusOption }}">{{ $statusOption }}</option>
+                        @endforeach
                     </select>
                 </div>
 
                 <!-- Priority Filter -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">Priority</label>
-                    <select wire:model.live="priority" class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white rounded-xl focus:bg-white dark:focus:bg-gray-600 focus:border-primary dark:focus:border-blue-500 focus:ring-4 focus:ring-primary/10 dark:focus:ring-blue-500/20 transition-all duration-300 outline-none">
+                    <select wire:model.live="priority" class="ui-input py-3">
                         <option value="">All Priority</option>
                         <option value="low">Low</option>
                         <option value="medium">Medium</option>
@@ -93,28 +94,28 @@
 
     <!-- Bulk Actions Bar -->
     @if(count($selectedTasks) > 0)
-    <div class="bg-linear-to-r from-primary to-blue-600 rounded-2xl shadow-lg p-4 mb-4">
-        <div class="flex items-center justify-between">
+    <div class="mb-4 rounded-2xl bg-linear-to-r from-primary to-blue-600 p-4 shadow-lg">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-center gap-3 text-white">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <span class="font-semibold">{{ count($selectedTasks) }} task(s) selected</span>
             </div>
-            <div class="flex items-center gap-2">
-                <button wire:click="bulkUpdateStatus('To Do')" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold rounded-lg transition-colors">
-                    Mark as To Do
+            <div class="flex flex-wrap items-center gap-2">
+                <button wire:click="bulkUpdateStatus('Drop idea')" class="px-3 py-2 bg-white/20 hover:bg-white/30 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors">
+                    Move to Drop idea
                 </button>
-                <button wire:click="bulkUpdateStatus('Doing')" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold rounded-lg transition-colors">
-                    Mark as Doing
+                <button wire:click="bulkUpdateStatus('Production')" class="px-3 py-2 bg-white/20 hover:bg-white/30 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors">
+                    Move to Production
                 </button>
-                <button wire:click="bulkUpdateStatus('Done')" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold rounded-lg transition-colors">
-                    Mark as Done
+                <button wire:click="bulkUpdateStatus('Finished')" class="px-3 py-2 bg-white/20 hover:bg-white/30 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors">
+                    Mark as Finished
                 </button>
-                <button wire:click="bulkDelete" onclick="return confirm('Are you sure you want to delete {{ count($selectedTasks) }} task(s)?')" class="px-4 py-2 bg-red-500/80 hover:bg-red-500 text-white text-sm font-semibold rounded-lg transition-colors">
+                <button wire:click="bulkDelete" onclick="return confirm('Are you sure you want to delete {{ count($selectedTasks) }} task(s)?')" class="px-3 py-2 bg-red-500/80 hover:bg-red-500 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors">
                     Delete
                 </button>
-                <button wire:click="$set('selectedTasks', [])" class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold rounded-lg transition-colors">
+                <button wire:click="$set('selectedTasks', [])" class="px-3 py-2 bg-white/20 hover:bg-white/30 text-white text-xs sm:text-sm font-semibold rounded-lg transition-colors">
                     Cancel
                 </button>
             </div>
@@ -123,7 +124,7 @@
     @endif
 
     <!-- Data Table -->
-    <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden transition-all duration-300">
+    <div class="ui-card overflow-hidden transition-all duration-300" wire:loading.class="ui-loading" wire:target="search,startDate,endDate,userId,status,priority,selectAll,selectedTasks">
         <div class="overflow-x-auto">
             <table class="min-w-full">
                 <thead>
@@ -153,7 +154,7 @@
                         </th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-100 dark:divide-gray-700 transition-colors duration-300">
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700 transition-colors duration-300">
                     @forelse($tasks as $task)
                     <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors duration-300 {{ in_array($task->id, $selectedTasks) ? 'bg-blue-50/50 dark:bg-blue-900/20' : '' }}">
                         <!-- Checkbox -->
@@ -219,11 +220,17 @@
                         <td class="px-6 py-4 text-sm">
                             @php
                                 $statusConfig = [
-                                    'To Do' => ['bg' => 'bg-gray-100 dark:bg-gray-700', 'text' => 'text-gray-800 dark:text-gray-300', 'border' => 'border-gray-200 dark:border-gray-600'],
-                                    'Doing' => ['bg' => 'bg-blue-100 dark:bg-blue-900/30', 'text' => 'text-blue-800 dark:text-blue-300', 'border' => 'border-blue-200 dark:border-blue-800'],
-                                    'Done' => ['bg' => 'bg-green-100 dark:bg-green-900/30', 'text' => 'text-green-800 dark:text-green-300', 'border' => 'border-green-200 dark:border-green-800'],
+                                    'Drop idea' => ['bg' => 'bg-slate-100 dark:bg-slate-700', 'text' => 'text-slate-800 dark:text-slate-300', 'border' => 'border-slate-200 dark:border-slate-600'],
+                                    'Script idea' => ['bg' => 'bg-violet-100 dark:bg-violet-900/30', 'text' => 'text-violet-800 dark:text-violet-300', 'border' => 'border-violet-200 dark:border-violet-800'],
+                                    'Script written' => ['bg' => 'bg-indigo-100 dark:bg-indigo-900/30', 'text' => 'text-indigo-800 dark:text-indigo-300', 'border' => 'border-indigo-200 dark:border-indigo-800'],
+                                    'Script preview' => ['bg' => 'bg-sky-100 dark:bg-sky-900/30', 'text' => 'text-sky-800 dark:text-sky-300', 'border' => 'border-sky-200 dark:border-sky-800'],
+                                    'Crew call shooting' => ['bg' => 'bg-amber-100 dark:bg-amber-900/30', 'text' => 'text-amber-800 dark:text-amber-300', 'border' => 'border-amber-200 dark:border-amber-800'],
+                                    'Production' => ['bg' => 'bg-orange-100 dark:bg-orange-900/30', 'text' => 'text-orange-800 dark:text-orange-300', 'border' => 'border-orange-200 dark:border-orange-800'],
+                                    'Post - Production' => ['bg' => 'bg-pink-100 dark:bg-pink-900/30', 'text' => 'text-pink-800 dark:text-pink-300', 'border' => 'border-pink-200 dark:border-pink-800'],
+                                    'Preview' => ['bg' => 'bg-cyan-100 dark:bg-cyan-900/30', 'text' => 'text-cyan-800 dark:text-cyan-300', 'border' => 'border-cyan-200 dark:border-cyan-800'],
+                                    'Finished' => ['bg' => 'bg-green-100 dark:bg-green-900/30', 'text' => 'text-green-800 dark:text-green-300', 'border' => 'border-green-200 dark:border-green-800'],
                                 ];
-                                $config = $statusConfig[$task->status_tugas] ?? $statusConfig['To Do'];
+                                $config = $statusConfig[$task->status_tugas] ?? $statusConfig['Drop idea'];
                             @endphp
                             <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold {{ $config['bg'] }} {{ $config['text'] }} border {{ $config['border'] }} transition-all duration-300">
                                 {{ $task->status_tugas }}
@@ -234,7 +241,7 @@
                         <td class="px-6 py-4 text-sm">
                             @if($task->due_date)
                                 @php
-                                    $isOverdue = $task->due_date < now() && $task->status_tugas !== 'Done';
+                                    $isOverdue = $task->due_date < now() && $task->status_tugas !== 'Finished';
                                     $isDueSoon = $task->due_date <= now()->addDays(1) && $task->due_date > now();
                                 @endphp
                                 <div class="flex items-center gap-2 {{ $isOverdue ? 'text-red-600 dark:text-red-400' : ($isDueSoon ? 'text-orange-600 dark:text-orange-400' : 'text-gray-600 dark:text-gray-400') }} transition-colors duration-300">
@@ -268,7 +275,7 @@
                     @empty
                     <tr>
                         <td colspan="7" class="px-6 py-12 text-center">
-                            <div class="flex flex-col items-center justify-center text-gray-400">
+                            <div class="ui-empty-state flex flex-col items-center justify-center text-gray-400">
                                 <svg class="w-16 h-16 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
@@ -282,7 +289,7 @@
             </table>
         </div>
         
-        <div class="px-6 py-4 bg-gray-50/50 dark:bg-gray-700/50 border-t border-gray-100 dark:border-gray-700 flex flex-col xs:flex-row items-center xs:justify-between transition-colors duration-300">
+        <div class="px-6 py-4 bg-gray-50/50 dark:bg-gray-700/50 border-t border-gray-200 dark:border-gray-700 flex flex-col xs:flex-row items-center xs:justify-between transition-colors duration-300">
             {{ $tasks->links() }}
         </div>
     </div>

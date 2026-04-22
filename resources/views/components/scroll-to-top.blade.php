@@ -44,7 +44,7 @@
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         "
-        class="inline-flex items-center justify-center h-11 w-11 rounded-full bg-[#0B1220] text-white shadow-lg transition hover:scale-105 hover:bg-black focus:outline-none focus:ring-4 focus:ring-[#0652FD]/25"
+        class="inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:scale-105 hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-indigo-500/25 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
     >
         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5m-7 7 7-7 7 7" />

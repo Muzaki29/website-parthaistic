@@ -5,33 +5,135 @@ namespace App\Services;
 use App\Models\Statistic;
 use App\Models\SyncLog;
 use App\Models\Task;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class TrelloService
 {
-    protected $apiKey;
+    protected ?string $apiKey;
 
-    protected $apiToken;
+    protected ?string $apiToken;
 
-    protected $boardId;
+    protected ?string $boardId;
 
-    protected $listMap;
+    protected array $listMap;
 
     public function __construct()
     {
-        $this->apiKey = config('services.trello.api_key');
-        $this->apiToken = config('services.trello.api_token');
+        $this->apiKey = config('services.trello.key');
+        $this->apiToken = config('services.trello.token');
         $this->boardId = config('services.trello.board_id');
-        $this->listMap = config('services.trello.lists');
+        $this->listMap = config('services.trello.lists', []);
+    }
+
+    /**
+     * Fetch and normalize Trello board cards.
+     */
+    public function getBoardCards(): array
+    {
+        if (! $this->apiKey || ! $this->apiToken || ! $this->boardId) {
+            Log::warning('Trello credentials are incomplete.');
+
+            return [];
+        }
+
+        $cacheKey = "trello:board:cards:{$this->boardId}";
+
+        return Cache::remember($cacheKey, now()->addSeconds(60), function () {
+            try {
+                $lists = $this->fetchBoardListsForDisplay();
+                $cards = $this->fetchBoardCardsForDisplay();
+
+                if ($lists === [] && $cards === []) {
+                    return [];
+                }
+
+                $listNameMap = collect($lists)
+                    ->filter(fn ($list) => isset($list['id'], $list['name']))
+                    ->mapWithKeys(fn ($list) => [$list['id'] => $list['name']])
+                    ->all();
+
+                return collect($cards)->map(function ($card) use ($listNameMap) {
+                    return [
+                        'id' => $card['id'] ?? null,
+                        'name' => $card['name'] ?? '',
+                        'description' => $card['desc'] ?? '',
+                        'list_name' => $listNameMap[$card['idList'] ?? ''] ?? 'Unknown',
+                        'labels' => collect($card['labels'] ?? [])
+                            ->pluck('name')
+                            ->filter()
+                            ->values()
+                            ->all(),
+                        'due' => $card['due'] ?? null,
+                        'url' => $card['url'] ?? null,
+                    ];
+                })->filter(fn ($card) => ! empty($card['id']))->values()->all();
+            } catch (ConnectionException $exception) {
+                Log::warning('Trello API timeout or network issue.', [
+                    'message' => $exception->getMessage(),
+                    'board_id' => $this->boardId,
+                ]);
+
+                return [];
+            } catch (\Throwable $exception) {
+                Log::error('Unexpected Trello fetch error.', [
+                    'message' => $exception->getMessage(),
+                    'board_id' => $this->boardId,
+                ]);
+
+                return [];
+            }
+        });
+    }
+
+    protected function fetchBoardListsForDisplay(): array
+    {
+        $response = Http::timeout(10)->get("https://api.trello.com/1/boards/{$this->boardId}/lists", [
+            'key' => $this->apiKey,
+            'token' => $this->apiToken,
+            'fields' => 'id,name',
+        ]);
+
+        if ($response->failed()) {
+            Log::warning('Failed fetching Trello lists for board display.', [
+                'status' => $response->status(),
+                'board_id' => $this->boardId,
+            ]);
+
+            return [];
+        }
+
+        return $response->json();
+    }
+
+    protected function fetchBoardCardsForDisplay(): array
+    {
+        $response = Http::timeout(15)->get("https://api.trello.com/1/boards/{$this->boardId}/cards", [
+            'key' => $this->apiKey,
+            'token' => $this->apiToken,
+            'fields' => 'id,name,desc,idList,labels,due,url',
+        ]);
+
+        if ($response->failed()) {
+            Log::warning('Failed fetching Trello cards for board display.', [
+                'status' => $response->status(),
+                'board_id' => $this->boardId,
+            ]);
+
+            return [];
+        }
+
+        return $response->json();
     }
 
     /**
      * Main method to sync data from Trello
      */
-    public function syncData()
+    public function syncData(): array
     {
         if (! $this->apiKey || ! $this->apiToken || ! $this->boardId) {
             return [
@@ -189,13 +291,13 @@ class TrelloService
             } else {
                 // Auto-detect by name
                 if (str_contains($name, 'do') && ! str_contains($name, 'done')) {
-                    $map[$id] = 'To Do';
+                    $map[$id] = Task::STATUS_DROP_IDEA;
                 } elseif (str_contains($name, 'doing') || str_contains($name, 'progress') || str_contains($name, 'on')) {
-                    $map[$id] = 'Doing';
+                    $map[$id] = Task::STATUS_PRODUCTION;
                 } elseif (str_contains($name, 'done') || str_contains($name, 'selesai') || str_contains($name, 'complete')) {
-                    $map[$id] = 'Done';
+                    $map[$id] = Task::STATUS_FINISHED;
                 } else {
-                    $map[$id] = 'To Do'; // Default fallback
+                    $map[$id] = Task::STATUS_DROP_IDEA; // Default fallback
                 }
             }
         }
@@ -206,10 +308,10 @@ class TrelloService
     protected function normalizeStatus($key)
     {
         return match ($key) {
-            'todo' => 'To Do',
-            'doing' => 'Doing',
-            'done' => 'Done',
-            default => 'To Do'
+            'todo' => Task::STATUS_DROP_IDEA,
+            'doing' => Task::STATUS_PRODUCTION,
+            'done' => Task::STATUS_FINISHED,
+            default => Task::STATUS_DROP_IDEA
         };
     }
 
@@ -236,7 +338,7 @@ class TrelloService
 
     protected function processCard($card, $statusMap, $userMap, $syncId)
     {
-        $status = $statusMap[$card['idList']] ?? 'To Do';
+        $status = $statusMap[$card['idList']] ?? Task::STATUS_DROP_IDEA;
 
         // Determine Assignee
         $assignedTo = null;
@@ -269,9 +371,9 @@ class TrelloService
         $rows = Task::query()
             ->selectRaw("
                 assigned_to as id_user,
-                SUM(CASE WHEN status_tugas = 'To Do' THEN 1 ELSE 0 END) as total_todo,
-                SUM(CASE WHEN status_tugas = 'Doing' THEN 1 ELSE 0 END) as total_doing,
-                SUM(CASE WHEN status_tugas = 'Done' THEN 1 ELSE 0 END) as total_done
+                SUM(CASE WHEN status_tugas IN ('Drop idea','Script idea','Script written','Script preview') THEN 1 ELSE 0 END) as total_todo,
+                SUM(CASE WHEN status_tugas IN ('Crew call shooting','Production','Post - Production','Preview') THEN 1 ELSE 0 END) as total_doing,
+                SUM(CASE WHEN status_tugas = 'Finished' THEN 1 ELSE 0 END) as total_done
             ")
             ->whereNotNull('assigned_to')
             ->groupBy('assigned_to')

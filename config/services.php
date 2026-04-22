@@ -36,8 +36,8 @@ return [
     ],
 
     'trello' => [
-        'api_key' => env('TRELLO_API_KEY'),
-        'api_token' => env('TRELLO_API_TOKEN'),
+        'key' => env('TRELLO_KEY', env('TRELLO_API_KEY')),
+        'token' => env('TRELLO_TOKEN', env('TRELLO_API_TOKEN')),
         'board_id' => env('TRELLO_BOARD_ID'),
         'lists' => [
             'todo' => env('TRELLO_LIST_TODO_ID'),

@@ -80,7 +80,7 @@ class UserNotificationService
     public function syncDerivedTaskNotifications(User $user): void
     {
         $openCount = Task::where('assigned_to', $user->id)
-            ->where('status_tugas', '!=', 'Done')
+            ->where('status_tugas', '!=', Task::STATUS_FINISHED)
             ->count();
 
         if ($openCount > 0) {
@@ -102,7 +102,7 @@ class UserNotificationService
         }
 
         $overdueCount = Task::where('assigned_to', $user->id)
-            ->where('status_tugas', '!=', 'Done')
+            ->where('status_tugas', '!=', Task::STATUS_FINISHED)
             ->where('diperbarui', '<', now()->subDays(7))
             ->count();
 

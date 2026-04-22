@@ -9,4 +9,66 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /*
+     | Warna aksen aplikasi (dashboard memakai Vite + file ini).
+     | Tanpa definisi ini, utilitas `primary` / `from-primary` bisa gagal
+     | dan gradient terlihat hampir putih di light mode.
+     */
+    --color-primary: #0652fd;
+    --radius-card: 1rem;
+    --shadow-card: 0 8px 24px -14px rgba(15, 23, 42, 0.35);
+    --shadow-card-dark: 0 10px 28px -16px rgba(15, 23, 42, 0.75);
+}
+
+@layer base {
+    :focus-visible {
+        outline: 2px solid color-mix(in oklab, var(--color-primary) 70%, white);
+        outline-offset: 2px;
+    }
+}
+
+@layer components {
+    .ui-card {
+        @apply rounded-2xl border border-gray-200 bg-white/90 shadow-sm dark:border-gray-700 dark:bg-gray-800/80;
+        box-shadow: var(--shadow-card);
+    }
+
+    .ui-card:hover {
+        @apply border-gray-300 dark:border-gray-600;
+    }
+
+    .dark .ui-card {
+        box-shadow: var(--shadow-card-dark);
+    }
+
+    .ui-input {
+        @apply w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm text-gray-800 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100;
+    }
+
+    .ui-btn-primary {
+        @apply inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-500/25 transition hover:-translate-y-0.5 hover:from-indigo-700 hover:to-blue-700;
+    }
+
+    .ui-btn-secondary {
+        @apply inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700;
+    }
+
+    .ui-text-muted {
+        @apply text-gray-600 dark:text-gray-400;
+    }
+
+    .ui-empty-state {
+        @apply rounded-2xl border border-dashed border-gray-300 bg-gray-50/70 p-10 text-center dark:border-gray-600 dark:bg-gray-800/40;
+    }
+
+    .ui-loading {
+        @apply relative pointer-events-none opacity-70;
+    }
+
+    .ui-loading::after {
+        content: '';
+        @apply absolute inset-0 animate-pulse bg-white/40 dark:bg-gray-900/30;
+        border-radius: inherit;
+    }
 }

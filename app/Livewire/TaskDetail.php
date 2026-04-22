@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Task;
 use App\Models\TaskFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -78,7 +79,7 @@ class TaskDetail extends Component
             'judul' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
             'notes' => 'nullable|string',
-            'status_tugas' => 'required|in:To Do,Doing,Done',
+            'status_tugas' => 'required|in:'.implode(',', Task::workflowStatuses()),
             'priority' => 'required|in:low,medium,high,urgent',
             'due_date' => 'nullable|date',
             'assigned_to' => 'nullable|exists:users,id',
@@ -157,30 +158,17 @@ class TaskDetail extends Component
 
         return view('livewire.task-detail', [
             'users' => $users,
+            'statuses' => Task::workflowStatuses(),
         ])->layout('layouts.dashboard');
     }
 
     protected function canManageTask(): bool
     {
-        $role = auth()->user()?->role;
-
-        if (in_array($role, ['admin', 'manager'], true)) {
-            return true;
-        }
-
-        return $this->task->assigned_to === auth()->id();
+        return Gate::allows('update', $this->task);
     }
 
     protected function authorizeTaskAccess(): void
     {
-        $role = auth()->user()?->role;
-
-        if (in_array($role, ['admin', 'manager'], true)) {
-            return;
-        }
-
-        if ($this->task->assigned_to !== auth()->id()) {
-            abort(403, 'Anda tidak memiliki akses ke task ini.');
-        }
+        Gate::authorize('view', $this->task);
     }
 }

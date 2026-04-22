@@ -26,7 +26,7 @@ class TaskSeeder extends Seeder
                 Task::create([
                     'judul' => $faker->sentence(4),
                     'deskripsi' => $faker->paragraph(),
-                    'status_tugas' => $faker->randomElement(['To Do', 'Doing', 'Done']),
+                    'status_tugas' => $faker->randomElement(Task::workflowStatuses()),
                     'assigned_to' => $user->id,
                     'dibuat' => now(),
                     'diperbarui' => now(),
@@ -35,9 +35,21 @@ class TaskSeeder extends Seeder
             }
 
             // Calculate statistics for the user
-            $todoCount = Task::where('assigned_to', $user->id)->where('status_tugas', 'To Do')->count();
-            $doingCount = Task::where('assigned_to', $user->id)->where('status_tugas', 'Doing')->count();
-            $doneCount = Task::where('assigned_to', $user->id)->where('status_tugas', 'Done')->count();
+            $todoCount = Task::where('assigned_to', $user->id)
+                ->whereIn('status_tugas', [
+                    Task::STATUS_DROP_IDEA,
+                    Task::STATUS_SCRIPT_IDEA,
+                    Task::STATUS_SCRIPT_WRITTEN,
+                    Task::STATUS_SCRIPT_PREVIEW,
+                ])->count();
+            $doingCount = Task::where('assigned_to', $user->id)
+                ->whereIn('status_tugas', [
+                    Task::STATUS_CREW_CALL_SHOOTING,
+                    Task::STATUS_PRODUCTION,
+                    Task::STATUS_POST_PRODUCTION,
+                    Task::STATUS_PREVIEW,
+                ])->count();
+            $doneCount = Task::where('assigned_to', $user->id)->where('status_tugas', Task::STATUS_FINISHED)->count();
 
             // Create or update statistics
             Statistic::updateOrCreate(
