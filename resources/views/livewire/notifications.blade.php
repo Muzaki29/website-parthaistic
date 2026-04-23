@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div class="ui-data-dense space-y-6">
     @if (session()->has('success'))
         <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300">
             <span>{{ session('success') }}</span>
@@ -25,7 +25,7 @@
     <!-- Notifications List -->
     <div class="space-y-3">
         @forelse($notificationRows as $notification)
-        <div class="ui-card group relative overflow-hidden transition-all duration-300 {{ !$notification['read'] ? 'ring-2 ring-primary/20 bg-blue-50/30 dark:bg-blue-900/20' : '' }}">
+        <div class="ui-card ui-reveal-soft group relative overflow-hidden transition-all duration-300 {{ !$notification['read'] ? 'ring-2 ring-primary/20 bg-blue-50/30 dark:bg-blue-900/20' : '' }}" data-reveal-delay="{{ $loop->index % 3 }}">
             <div class="p-6">
                 <div class="flex items-start gap-4">
                     <!-- Icon -->

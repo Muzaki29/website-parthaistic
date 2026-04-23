@@ -1,5 +1,5 @@
 <div
-    class="space-y-6"
+    class="ui-data-dense space-y-6"
     x-data="{
         draggingTaskId: null,
         sourceStatus: null,
@@ -52,7 +52,7 @@
     <div class="overflow-x-auto pb-2 snap-x snap-mandatory">
         <div class="grid min-w-[1800px] grid-cols-9 gap-4">
             @foreach($statuses as $status)
-                <section class="ui-card snap-start p-3">
+                <section class="ui-card ui-reveal-soft snap-start p-3" data-reveal-delay="{{ $loop->index % 3 }}">
                     <div class="mb-3 flex items-center justify-between gap-2">
                         <h2 class="text-sm font-bold text-gray-900 dark:text-gray-100">{{ $status }}</h2>
                         <span class="inline-flex h-6 min-w-[24px] items-center justify-center rounded-full bg-primary/10 px-2 text-xs font-semibold text-primary dark:bg-primary/20">

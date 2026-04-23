@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div class="ui-data-dense space-y-6">
     <!-- Header Section -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -23,7 +23,7 @@
     </div>
 
     <!-- Filter Card -->
-    <div class="ui-card p-6 transition-all duration-300">
+    <div class="ui-card ui-reveal p-6 transition-all duration-300">
         <div class="flex items-center gap-3 mb-6">
             <div class="p-2 rounded-lg bg-primary/10 dark:bg-primary/20 transition-colors duration-300">
                 <svg class="w-6 h-6 text-primary dark:text-blue-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,7 +130,7 @@
     @endif
 
     <!-- Data Table -->
-    <div class="ui-card overflow-hidden transition-all duration-300" wire:loading.class="ui-loading" wire:target="search,startDate,endDate,userId,status,priority,selectAll,selectedTasks">
+    <div class="ui-card ui-reveal-soft overflow-hidden transition-all duration-300" data-reveal-delay="1" wire:loading.class="ui-loading" wire:target="search,startDate,endDate,userId,status,priority,selectAll,selectedTasks">
         <div class="overflow-x-auto">
             <table class="min-w-full">
                 <thead>

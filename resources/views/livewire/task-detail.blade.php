@@ -28,7 +28,7 @@
         <!-- Main Content -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Task Info Card -->
-            <div class="ui-card p-6">
+            <div class="ui-card ui-reveal p-6">
                 <div class="space-y-6">
                     <div>
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">{{ $task->judul }}</h2>
@@ -103,7 +103,7 @@
             </div>
 
             <!-- Files Section -->
-            <div class="ui-card p-6">
+            <div class="ui-card ui-reveal p-6" data-reveal-delay="1">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Attachments</h3>
                 
                 <form wire:submit.prevent="uploadFiles" class="mb-6">
@@ -154,7 +154,7 @@
         <!-- Sidebar -->
         <div class="space-y-6">
             <!-- Task Info -->
-            <div class="ui-card p-6">
+            <div class="ui-card ui-reveal p-6" data-reveal-delay="2">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Task Information</h3>
                 <div class="space-y-4">
                     <div>

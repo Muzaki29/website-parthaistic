@@ -1,10 +1,10 @@
-<section id="process" class="bg-white py-20 lg:py-24 dark:bg-neutral-950">
+<section id="process" class="ui-landing-section bg-white dark:bg-neutral-950">
     <div class="mx-auto w-full max-w-7xl px-6 lg:px-8">
         <div class="grid gap-10 lg:grid-cols-[1fr,1fr]">
-            <div class="space-y-4">
-                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600 dark:text-indigo-300">Our process</p>
-                <h2 class="text-3xl font-semibold tracking-tight text-slate-900 dark:text-neutral-100">Simple workflow, premium output</h2>
-                <p class="max-w-lg text-base text-gray-600 dark:text-neutral-300">
+            <div class="ui-reveal space-y-4">
+                <p class="ui-landing-kicker">Our process</p>
+                <h2 class="ui-landing-title">Simple workflow, premium output</h2>
+                <p class="ui-landing-body max-w-lg">
                     Kami menjaga alur tetap ringan untuk klien, namun ketat di sisi kualitas eksekusi tim produksi.
                 </p>
             </div>
@@ -16,7 +16,7 @@
                     ['step' => '03', 'title' => 'Production Sprint', 'desc' => 'Asset diproduksi dalam sprint terarah, dengan feedback loop yang singkat.'],
                     ['step' => '04', 'title' => 'Launch & Iteration', 'desc' => 'Konten dirilis, dipantau, lalu diiterasi berdasarkan performa dan insight.'],
                 ] as $item)
-                    <details class="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 dark:border-white/10 dark:bg-neutral-900/70">
+                    <details class="ui-reveal rounded-2xl border border-slate-200 bg-slate-50/70 p-5 dark:border-white/10 dark:bg-neutral-900/70" data-reveal-delay="{{ $loop->index % 3 }}">
                         <summary class="flex cursor-pointer list-none items-center justify-between gap-3">
                             <span class="text-base font-semibold text-slate-900 dark:text-neutral-100">{{ $item['title'] }}</span>
                             <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-xs font-semibold text-white">{{ $item['step'] }}</span>
@@ -33,7 +33,7 @@
                     ['step' => '03', 'title' => 'Production Sprint', 'desc' => 'Asset diproduksi dalam sprint terarah, dengan feedback loop yang singkat.'],
                     ['step' => '04', 'title' => 'Launch & Iteration', 'desc' => 'Konten dirilis, dipantau, lalu diiterasi berdasarkan performa dan insight.'],
                 ] as $item)
-                    <article class="rounded-2xl border border-slate-200 bg-slate-50/70 p-6 shadow-sm dark:border-white/10 dark:bg-neutral-900/70">
+                    <article class="ui-landing-card ui-reveal bg-slate-50/70 p-6 dark:bg-neutral-900/70" data-reveal-delay="{{ $loop->index % 3 }}">
                         <div class="flex items-start gap-4">
                             <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-500 text-sm font-semibold text-white shadow-md">
                                 {{ $item['step'] }}

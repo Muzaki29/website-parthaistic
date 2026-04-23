@@ -40,7 +40,7 @@
 
     <!-- Operational snapshot -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <a href="{{ route('notifications') }}" class="ui-card group flex flex-col justify-between bg-white p-5 transition hover:border-primary/40 hover:shadow-md dark:bg-gray-800/80">
+        <a href="{{ route('notifications') }}" class="ui-card ui-reveal group flex flex-col justify-between bg-white p-5 transition hover:border-primary/40 hover:shadow-md dark:bg-gray-800/80">
             <div class="flex items-center justify-between gap-2">
                 <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Perlu dibaca</span>
                 <span class="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary dark:bg-primary/20">Notifikasi</span>
@@ -51,7 +51,7 @@
         </a>
 
         @if(auth()->user()->role === 'admin')
-        <a href="{{ route('admin.leads.index') }}" class="ui-card group flex flex-col justify-between bg-white p-5 transition hover:border-amber-400/50 hover:shadow-md dark:bg-gray-800/80">
+        <a href="{{ route('admin.leads.index') }}" class="ui-card ui-reveal group flex flex-col justify-between bg-white p-5 transition hover:border-amber-400/50 hover:shadow-md dark:bg-gray-800/80" data-reveal-delay="1">
             <div class="flex items-center justify-between gap-2">
                 <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Pipeline lead</span>
                 <span class="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900 dark:bg-amber-900/40 dark:text-amber-100">Follow-up</span>
@@ -61,14 +61,14 @@
             <span class="mt-3 text-sm font-semibold text-amber-800 group-hover:underline dark:text-amber-200">Buka inbox lead →</span>
         </a>
         @else
-        <div class="flex flex-col justify-between rounded-2xl border border-dashed border-gray-200 bg-white/60 p-5 dark:border-gray-700 dark:bg-gray-800/40">
+        <div class="ui-reveal flex flex-col justify-between rounded-2xl border border-dashed border-gray-200 bg-white/60 p-5 dark:border-gray-700 dark:bg-gray-800/40" data-reveal-delay="1">
             <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Akses admin</span>
             <p class="mt-3 text-sm text-gray-600 dark:text-gray-300">Inbox lead hanya untuk admin. Fokus pada tugas &amp; laporan Anda.</p>
             <a href="{{ route('reports') }}" class="mt-3 text-sm font-semibold text-primary hover:underline">Buka Reports →</a>
         </div>
         @endif
 
-        <div class="ui-card bg-white p-5 dark:bg-gray-800/80">
+        <div class="ui-card ui-reveal bg-white p-5 dark:bg-gray-800/80" data-reveal-delay="2">
             <div class="flex items-center justify-between gap-2">
                 <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Langkah berikutnya</span>
             </div>
@@ -81,7 +81,7 @@
     </div>
 
     @if($recentActivity->isNotEmpty())
-    <div class="ui-card bg-white p-6 dark:bg-gray-800/80">
+    <div class="ui-card ui-reveal bg-white p-6 dark:bg-gray-800/80">
         <div class="flex items-center justify-between gap-3">
             <div>
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Aktivitas terbaru</h2>
@@ -103,7 +103,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-[1.4fr,0.6fr] gap-6">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Card 1: Total Tasks -->
-        <div class="group relative overflow-hidden bg-white dark:bg-gray-800/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700">
+        <div class="ui-reveal group relative overflow-hidden bg-white dark:bg-gray-800/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700">
             <div class="relative p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="p-3 rounded-xl bg-linear-to-br from-primary to-primary/80 shadow-lg shadow-primary/20">
@@ -121,7 +121,7 @@
         </div>
 
         <!-- Card 2: Task Done -->
-        <div class="group relative overflow-hidden bg-white dark:bg-gray-800/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700">
+        <div class="ui-reveal group relative overflow-hidden bg-white dark:bg-gray-800/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700" data-reveal-delay="1">
             <div class="relative p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="p-3 rounded-xl bg-linear-to-br from-green-500 to-emerald-600 shadow-lg shadow-green-500/20">
@@ -141,7 +141,7 @@
         </div>
 
         <!-- Card 3: Overdue -->
-        <div class="group relative overflow-hidden bg-white dark:bg-gray-800/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700">
+        <div class="ui-reveal group relative overflow-hidden bg-white dark:bg-gray-800/80 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700" data-reveal-delay="2">
             <div class="relative p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div class="p-3 rounded-xl bg-linear-to-br from-red-500 to-rose-600 shadow-lg shadow-red-500/20">
@@ -159,7 +159,7 @@
         </div>
 
         </div>
-        <aside class="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/80 p-6 shadow-sm">
+        <aside class="ui-reveal rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/80 p-6 shadow-sm" data-reveal-delay="2">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Next action</h2>
             <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                 {{ $trendText }}. Prioritaskan task overdue dan update status setelah standup.
@@ -175,7 +175,7 @@
     <!-- Charts & Tables -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Bar Chart -->
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-2xl transition-all duration-300">
+        <div class="ui-reveal bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-2xl transition-all duration-300">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1 transition-colors duration-300">Task Status Distribution</h3>
@@ -191,7 +191,7 @@
         </div>
 
         <!-- Top Performer -->
-        <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-2xl transition-all duration-300">
+        <div class="ui-reveal bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-2xl transition-all duration-300" data-reveal-delay="1">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1 transition-colors duration-300">Top Performers</h3>
@@ -272,7 +272,7 @@
     </div>
 
     <!-- Heatmap -->
-    <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6 mb-8 hover:shadow-2xl transition-all duration-300">
+    <div class="ui-reveal bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6 mb-8 hover:shadow-2xl transition-all duration-300">
         <div class="flex items-center justify-between mb-6">
             <div>
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1 transition-colors duration-300">Activity Density</h3>
@@ -288,7 +288,7 @@
     </div>
 
     <!-- Problems & Diagnostics -->
-    <div id="problems_and_diagnostics" class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6 mb-8 hover:shadow-2xl transition-all duration-300">
+    <div id="problems_and_diagnostics" class="ui-reveal bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-6 mb-8 hover:shadow-2xl transition-all duration-300" data-reveal-delay="1">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1 transition-colors duration-300">Problems & Diagnostics</h3>

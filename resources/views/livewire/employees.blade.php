@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div class="ui-data-dense space-y-6">
     <!-- Header Section -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -26,7 +26,7 @@
     @endif
 
     <!-- Table Card -->
-    <div class="ui-card overflow-hidden transition-all duration-300">
+    <div class="ui-card ui-reveal-soft overflow-hidden transition-all duration-300">
         <div class="overflow-x-auto">
             <table class="min-w-full">
                 <thead>

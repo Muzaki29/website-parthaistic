@@ -1,6 +1,6 @@
-<section id="lead-capture" class="bg-white py-20 lg:py-24 dark:bg-neutral-950">
+<section id="lead-capture" class="ui-landing-section bg-white dark:bg-neutral-950">
     <div class="mx-auto w-full max-w-7xl px-6 lg:px-8">
-        <div class="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-900 via-indigo-900 to-blue-800 px-8 py-10 text-white shadow-2xl shadow-indigo-900/20 lg:px-10 lg:py-12">
+        <div class="ui-reveal relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-900 via-indigo-900 to-blue-800 px-8 py-10 text-white shadow-2xl shadow-indigo-900/20 lg:px-10 lg:py-12">
             <div class="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl"></div>
             <div class="pointer-events-none absolute -left-20 -bottom-24 h-64 w-64 rounded-full bg-indigo-300/20 blur-3xl"></div>
 
@@ -18,7 +18,7 @@
                     </div>
                 </div>
 
-                <div class="rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur">
+                <div class="ui-reveal rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur" data-reveal-delay="1">
                     @if (session('lead_success'))
                         <div class="mb-4 rounded-lg border border-emerald-300/30 bg-emerald-400/20 px-4 py-3 text-sm text-emerald-100">
                             {{ session('lead_success') }}
