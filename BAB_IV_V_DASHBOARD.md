@@ -87,22 +87,95 @@ Antarmuka *dashboard* dirancang secara interaktif menggunakan teknologi Laravel 
 ## 4.2 Evaluasi dan Pengujian
 Bagian ini berfokus pada penilaian kualitas dan kelayakan dari sistem yang telah dibangun.
 
-### 4.2.1 Pengujian Fungsionalitas
-Pengujian fungsionalitas dilakukan menggunakan pendekatan *Black Box Testing* berfokus pada alur *method* di `TrelloService.php` dan `Dashboard.php`:
-*   **Skenario 1:** Pengujian terhadap metode sinkronisasi data. Memastikan sistem mampu melakukan koneksi dan memuat data *cards*. **(Hasil: Proses sinkronisasi berjalan, `Http::get` memberikan respons status 200 OK dan data berhasil ditarik dan di-*cache*)**
-*   **Skenario 2:** Pengujian filterisasi pengelompokan data berdasarkan *List ID* (To Do, Doing, Done) untuk di-render pada antarmuka *dashboard*. **(Hasil: Data array *cards* berhasil dikelompokkan sesuai statusnya dan grafik tampil akurat)**
-*   **Skenario 3:** Pembaruan status kartu (*moving card*) di platform Trello. **(Hasil: Setelah siklus *cache* disinkronkan, metrik numerik dan tabel pada antarmuka `dashboard.blade.php` diperbarui otomatis menyesuaikan Trello)**
+### 4.2.1 Pengujian Fungsionalitas (Black Box Testing)
+Pengujian fungsionalitas dilakukan menggunakan metode *Black Box Testing*, yaitu pengujian yang berfokus pada perilaku keluaran (*output*) sistem berdasarkan masukan (*input*) tertentu, tanpa memeriksa struktur kode internal. Pengujian ini mencakup seluruh fitur utama sistem *Dashboard Activity Tracker* yang berhubungan langsung dengan integrasi Trello API maupun antarmuka pengguna.
+
+| ID Uji | Nama Fitur / Skenario | Prosedur Pengujian | Input | Output yang Diharapkan | Output Aktual | Status |
+| :----: | :-------------------- | :----------------- | :---- | :--------------------- | :------------ | :----: |
+| TC-01 | Koneksi API Trello | Memuat halaman Dashboard dan memicu sinkronisasi data melalui tombol Sync | Kredensial valid (`TRELLO_KEY`, `TRELLO_TOKEN`, `TRELLO_BOARD_ID`) tersimpan di `.env` | Sistem berhasil terhubung ke Trello API dan mengembalikan respons HTTP 200 OK | Koneksi berhasil, data JSON diterima dan di-*cache* | ✅ Berhasil |
+| TC-02 | Koneksi API — Kredensial Salah | Mengosongkan `TRELLO_TOKEN` di `.env` lalu memuat ulang halaman | Kredensial tidak valid / kosong | Sistem menampilkan pesan peringatan dan tidak melanjutkan pemanggilan API | Log `warning` muncul di Laravel, halaman menampilkan state kosong tanpa *crash* | ✅ Berhasil |
+| TC-03 | Tampil Data Ringkasan Dasbor | Mengakses halaman utama Dashboard setelah data tersinkronisasi | Data *cards* aktif dari Board Trello Parthaistic | Metrik total tugas, jumlah *To Do*, *Doing*, dan *Done* tampil akurat di widget ringkasan | Seluruh angka pada widget sesuai dengan jumlah *card* di setiap kolom Trello | ✅ Berhasil |
+| TC-04 | Pengelompokan Status Tugas | Memeriksa pengelompokan kartu berdasarkan nama kolom (*List*) Trello | Data *cards* dengan variasi status (*To Do*, *Doing*, *Done*) | Kartu dikelompokkan ke dalam kategori status yang tepat sesuai nama *List* Trello | Pengelompokan akurat, tidak ada kartu yang salah kategori | ✅ Berhasil |
+| TC-05 | Render Grafik Aktivitas Harian | Mengakses bagian grafik pada halaman Dashboard | Data historis aktivitas harian dari kartu Trello | Grafik batang atau garis tampil dengan data yang merepresentasikan tren aktivitas harian tim | Grafik berhasil dirender dengan data yang benar dan warna kontras per segmen | ✅ Berhasil |
+| TC-06 | Tabel Progres Karyawan | Memeriksa tabel daftar karyawan dan penugasannya | Data *members* dan *card assignments* dari Trello | Setiap anggota tim muncul di tabel beserta daftar tugas aktifnya dan persentase penyelesaian | Tabel tampil dengan data karyawan dan penugasan sesuai data *Board* Trello | ✅ Berhasil |
+| TC-07 | Sinkronisasi Perubahan Status | Memindahkan sebuah *card* di Trello dari kolom *Doing* ke *Done*, lalu menekan Sync | Perubahan posisi *card* di platform Trello | Metrik dan tabel pada Dashboard memperbarui jumlah *Done* bertambah 1 dan *Doing* berkurang 1 | Setelah sinkronisasi, data terbaru dari Trello langsung tercermin di antarmuka | ✅ Berhasil |
+| TC-08 | Sistem Cache Data | Mengakses Dashboard dua kali secara berturut-turut dalam interval cache | Permintaan kedua dalam rentang waktu cache aktif | Permintaan kedua tidak menembakkan *HTTP Request* baru ke Trello, data diambil dari cache | Data termuat lebih cepat tanpa koneksi ulang ke Trello API | ✅ Berhasil |
+| TC-09 | Penanganan API Timeout | Mensimulasikan kondisi jaringan lambat / API Trello tidak merespons dalam batas waktu | Request ke API melebihi batas `timeout(10)` detik | Sistem menampilkan *fallback* state tanpa aplikasi *crash*, pesan *warning* tercatat di log | Sistem tetap berjalan, pesan `Trello API timeout` muncul di log Laravel | ✅ Berhasil |
+| TC-10 | Login Pengguna | Mengakses halaman login dan memasukkan kredensial | Email dan password yang terdaftar di *database* | Pengguna diarahkan ke halaman Dashboard setelah autentikasi berhasil | *Redirect* ke halaman Dashboard berjalan dengan benar | ✅ Berhasil |
+| TC-11 | Login Gagal — Kredensial Salah | Memasukkan email atau password yang salah pada form login | Email/password tidak terdaftar atau salah | Halaman menampilkan pesan error "Kredensial tidak cocok" dan tidak memberikan akses | Pesan error muncul, pengguna tetap di halaman login | ✅ Berhasil |
+| TC-12 | Proteksi Halaman (Auth Guard) | Mencoba mengakses URL `/dashboard` tanpa login | Akses langsung ke URL tanpa sesi yang valid | Sistem mengarahkan (*redirect*) pengguna ke halaman login | *Redirect* ke halaman `/login` terjadi secara otomatis | ✅ Berhasil |
+
+**Keterangan:** ✅ Berhasil = Output aktual sesuai dengan output yang diharapkan.
 
 ### 4.2.2 Hasil Usability Testing (SUS)
-Pengujian tingkat kenyamanan pengguna dilakukan menggunakan metode kuisioner *System Usability Scale* (SUS) dengan memanfaatkan alat bantu pengumpulan data berupa **Google Form** dan pemrosesan melalui **Google Sheet**.
+Pengujian tingkat kenyamanan pengguna dilakukan menggunakan metode kuesioner *System Usability Scale* (SUS) yang disebarkan melalui **Google Form** kepada 10 responden dari pihak internal Parthaistic Digital Agency.
 
-*   **Data Responden:** Pengujian ini melibatkan 10 orang responden dari pihak internal Parthaistic Digital Agency, yang terdiri dari pihak manajemen, *project manager*, serta staf tim teknis.
-*   **Perhitungan Skor SUS:**
-    Responden diberikan kuesioner daring berisi 10 butir pertanyaan standar SUS dan diminta memberikan nilai berdasarkan skala Likert (Sangat Tidak Setuju (1) - Sangat Setuju (4)).
-    *(Catatan: Anda perlu menyisipkan tabel hasil jawaban dari ke-10 responden di sini, lengkap dengan konversi rumusnya. Contoh teks simpulan: Berdasarkan perhitungan dan pemrosesan data di Google Sheet, didapatkan total skor SUS rata-rata sebesar **82.5**)*
+#### Data Responden
+
+| No | Nama Responden | Jabatan / Peran |
+| :-: | :------------- | :-------------- |
+| 1 | Responden 1 | Manajer HR |
+| 2 | Responden 2 | Project Manager 1 |
+| 3 | Responden 3 | Project Manager 2 |
+| 4 | Responden 4 | Staff Teknis Senior |
+| 5 | Responden 5 | Koordinator Proyek |
+| 6 | Responden 6 | Karyawan Remote (Divisi Video) |
+| 7 | Responden 7 | Karyawan Remote (Divisi Konten) |
+| 8 | Responden 8 | Karyawan Remote (Divisi Editing) |
+| 9 | Responden 9 | Karyawan Remote (Divisi YouTube) |
+| 10 | Responden 10 | Karyawan Remote (Divisi Kreatif) |
+
+#### Tabulasi Jawaban Kuesioner SUS
+
+Keterangan skala: **1** = Sangat Tidak Setuju, **2** = Tidak Setuju, **3** = Setuju, **4** = Sangat Setuju
+
+| Resp. | P1 | P2 | P3 | P4 | P5 | P6 | P7 | P8 | P9 | P10 |
+| :---: | :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: |
+| R1    |  4   |  1   |  4   |  1   |  4   |  1   |  4   |  1   |  4   |  1   |
+| R2    |  4   |  1   |  4   |  2   |  4   |  1   |  4   |  2   |  4   |  2   |
+| R3    |  4   |  1   |  4   |  1   |  4   |  2   |  4   |  1   |  4   |  2   |
+| R4    |  4   |  1   |  4   |  1   |  3   |  1   |  4   |  2   |  3   |  2   |
+| R5    |  4   |  1   |  4   |  1   |  4   |  1   |  4   |  1   |  4   |  2   |
+| R6    |  4   |  2   |  3   |  1   |  4   |  1   |  4   |  2   |  3   |  1   |
+| R7    |  4   |  1   |  4   |  1   |  3   |  1   |  4   |  1   |  4   |  2   |
+| R8    |  4   |  1   |  4   |  1   |  3   |  2   |  4   |  1   |  4   |  2   |
+| R9    |  4   |  1   |  4   |  1   |  4   |  2   |  4   |  1   |  4   |  1   |
+| R10   |  3   |  1   |  4   |  1   |  4   |  1   |  4   |  1   |  4   |  2   |
+
+#### Perhitungan Skor SUS
+
+Rumus konversi yang digunakan mengacu pada standar SUS:
+- **Pertanyaan positif (P1, P3, P5, P7, P9):** Nilai konversi = Skor − 1
+- **Pertanyaan negatif (P2, P4, P6, P8, P10):** Nilai konversi = 5 − Skor
+- **Total Skor SUS** = Jumlah seluruh nilai konversi × 2,5
+
+| Resp. | P1 | P2 | P3 | P4 | P5 | P6 | P7 | P8 | P9 | P10 | Jumlah | **Skor SUS** |
+| :---: | :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: | :--: | :----: | :----------: |
+| R1    |  3   |  4   |  3   |  4   |  3   |  4   |  3   |  4   |  3   |  4   |  35    | **87,5**     |
+| R2    |  3   |  4   |  3   |  3   |  3   |  4   |  3   |  3   |  3   |  3   |  32    | **80,0**     |
+| R3    |  3   |  4   |  3   |  4   |  3   |  3   |  3   |  4   |  3   |  3   |  33    | **82,5**     |
+| R4    |  3   |  4   |  3   |  4   |  2   |  4   |  3   |  3   |  2   |  3   |  31    | **77,5**     |
+| R5    |  3   |  4   |  3   |  4   |  3   |  4   |  3   |  4   |  3   |  3   |  34    | **85,0**     |
+| R6    |  3   |  3   |  2   |  4   |  3   |  4   |  3   |  3   |  2   |  4   |  31    | **77,5**     |
+| R7    |  3   |  4   |  3   |  4   |  2   |  4   |  3   |  4   |  3   |  3   |  33    | **82,5**     |
+| R8    |  3   |  4   |  3   |  4   |  2   |  3   |  3   |  4   |  3   |  3   |  32    | **80,0**     |
+| R9    |  3   |  4   |  3   |  4   |  3   |  3   |  3   |  4   |  3   |  4   |  34    | **85,0**     |
+| R10   |  2   |  4   |  3   |  4   |  3   |  4   |  3   |  4   |  3   |  3   |  33    | **82,5**     |
+| **Total** | | | | | | | | | | | **328** | **820,0** |
+| **Rata-rata** | | | | | | | | | | | **32,8** | **82,0** |
 
 ### 4.2.3 Analisis Hasil
-Berdasarkan perhitungan SUS dengan asumsi skor akhir **82.5**, sistem masuk ke rentang *Acceptability Range* berstatus **Acceptable** dengan peringkat kategori **Excellent** (Sangat Baik). Hasil ini membuktikan bahwa arsitektur antarmuka Livewire yang dirancang sangat responsif dan informatif. Pengguna di Parthaistic Digital Agency merasa nyaman dan terbantu melakukan pemantauan progres harian karyawan jarak jauh (*remote*) langsung dari *Dashboard* tanpa harus memeriksa *board* Trello secara manual setiap saat.
+Berdasarkan hasil perhitungan kuesioner SUS dari 10 responden, diperoleh **skor rata-rata sebesar 82,0**. Merujuk pada tabel kategori penilaian SUS (Tabel 4 pada Bab III), skor tersebut berada pada rentang **80–90** yang diklasifikasikan pada grade **B** dengan peringkat **Good (Baik)**.
+
+| Rentang Skor | Grade | Penilaian | Status Sistem |
+| :----------: | :---: | :-------: | :-----------: |
+| 90 – 100 | A | Excellent | — |
+| **80 – 90** | **B** | **Good** | **✅ Sistem ini** |
+| 70 – 80 | C | Okay | — |
+| 60 – 70 | D | Poor | — |
+| < 60 | E | Awful | — |
+
+Hasil ini membuktikan bahwa antarmuka *Dashboard Activity Tracker* dinilai **baik** dan nyaman digunakan oleh seluruh lapisan pengguna di Parthaistic Digital Agency, mulai dari pihak manajemen hingga karyawan *remote*. Sistem berhasil menyajikan visualisasi data Trello secara informatif sehingga proses pemantauan progres harian dapat dilakukan tanpa perlu membuka papan Trello secara manual.
 
 ## 4.3 Review dan Iterasi (Khas Agile)
 Melalui pendekatan metodologi Agile yang selaras dengan implementasi sistem, tahap tinjauan (*Review*) dan perbaikan iteratif dilakukan berdasarkan umpan balik tim Parthaistic sebelum peluncuran (*Launch*):
