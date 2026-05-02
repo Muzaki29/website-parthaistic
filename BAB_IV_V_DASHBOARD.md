@@ -110,6 +110,23 @@ Pengujian fungsionalitas dilakukan menggunakan metode *Black Box Testing*, yaitu
 ### 4.2.2 Hasil Usability Testing (SUS)
 Pengujian tingkat kenyamanan pengguna dilakukan menggunakan metode kuesioner *System Usability Scale* (SUS) yang disebarkan melalui **Google Form** kepada 10 responden dari pihak internal Parthaistic Digital Agency.
 
+#### Instrumen Pertanyaan SUS
+Kuesioner SUS terdiri dari 10 pernyataan standar (John Brooke, 1996) yang dinilai oleh responden menggunakan skala Likert. Pernyataan tersebut meliputi:
+
+| Kode | Pernyataan | Jenis |
+| :--: | :--------- | :---: |
+| P1 | Saya berpikir akan menggunakan sistem ini lagi. | Positif |
+| P2 | Saya merasa sistem ini rumit untuk digunakan. | Negatif |
+| P3 | Saya merasa sistem ini mudah digunakan. | Positif |
+| P4 | Saya membutuhkan bantuan orang teknis untuk dapat menggunakan sistem ini. | Negatif |
+| P5 | Saya merasa fitur-fitur dalam sistem ini terintegrasi dengan baik. | Positif |
+| P6 | Saya merasa ada banyak ketidakkonsistenan pada sistem ini. | Negatif |
+| P7 | Saya merasa orang lain akan belajar menggunakan sistem ini dengan cepat. | Positif |
+| P8 | Saya merasa sistem ini membingungkan untuk digunakan. | Negatif |
+| P9 | Saya merasa sangat percaya diri menggunakan sistem ini. | Positif |
+| P10 | Saya perlu mempelajari banyak hal sebelum dapat menggunakan sistem ini. | Negatif |
+
+
 #### Data Responden
 
 | No | Nama Responden | Jabatan / Peran |
