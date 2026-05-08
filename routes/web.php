@@ -7,9 +7,10 @@ use App\Http\Middleware\EnsureUserRole;
 use App\Livewire\Dashboard;
 use App\Livewire\Employees;
 use App\Livewire\Login;
-use App\Livewire\Register;
 use App\Livewire\Profile;
+use App\Livewire\Register;
 use App\Livewire\Reports;
+use App\Livewire\TeamOverview;
 use App\Livewire\WorkflowBoard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -34,6 +35,7 @@ Route::post('/logout', function () {
 
 Route::middleware([EnsureUserRole::class.':admin,manager,employee'])->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
+    Route::get('/team-overview', TeamOverview::class)->name('team.overview');
     Route::get('/workflow-board', WorkflowBoard::class)->name('workflow.board');
     Route::get('/reports', Reports::class)->name('reports');
     Route::get('/tasks/{id}', \App\Livewire\TaskDetail::class)->name('tasks.show');

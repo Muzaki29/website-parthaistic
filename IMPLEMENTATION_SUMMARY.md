@@ -243,10 +243,21 @@ CREATE TABLE task_files (
 - ✅ Premium landing page dengan section-based composition
 - ✅ Sticky navbar (landing + dashboard)
 - ✅ Reusable scroll-to-top component (`x-scroll-to-top`)
+- ✅ Team Overview: grafik harian, kartu bulanan, Hall of Fame, modal detail anggota
+- ✅ Dashboard: aktivitas terbaru dalam bentuk tabel; chart dibungkus `wire:ignore` agar stabil dengan Livewire
 
 ---
 
-**Dibuat**: {{ date('Y-m-d H:i:s') }}
-**Versi**: 1.0
+## 🧪 Quality & Keamanan Akses (update terbaru)
+
+- ✅ **Smoke test rute** — `tests/Feature/SmokeRoutesTest.php` memverifikasi GET utama (landing, dashboard, team-overview, workflow-board, reports, profile, notifications, employees, admin leads) dan perilaku guest/employee/admin.
+- ✅ **Team Overview** — `tests/Feature/TeamOverviewTest.php` + `TeamOverviewNavTest.php` (navigasi bulan tidak merusak tampilan).
+- ✅ **Middleware `EnsureUserRole`** — Selain role, memverifikasi `status_akun === active`; akun non-aktif di-logout otomatis saat mengakses rute terlindungi.
+- ✅ **Register** — Redirect pengguna yang sudah login memakai `redirectRoute` Livewire (menghindari error 500).
+
+---
+
+**Dibuat**: 2026-05-08  
+**Versi**: 1.1
 
 

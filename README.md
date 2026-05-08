@@ -22,10 +22,13 @@
 - [Tentang Sistem](#-tentang-sistem)
 - [Arsitektur Sistem](#-arsitektur-sistem)
 - [Fitur Lengkap](#-fitur-lengkap)
+- [Halaman & Rute Utama](#-halaman--rute-utama)
 - [Stack Teknologi](#-stack-teknologi)
 - [Struktur Direktori Utama](#-struktur-direktori-utama)
 - [Prasyarat Instalasi](#-prasyarat-instalasi)
 - [Panduan Instalasi & Konfigurasi API](#-panduan-instalasi--konfigurasi-api)
+- [Testing](#-testing)
+- [Dokumentasi Tambahan](#-dokumentasi-tambahan)
 - [Alur Sinkronisasi Trello](#-alur-sinkronisasi-trello)
 
 ---
@@ -68,19 +71,26 @@
 ## 🌟 Fitur Lengkap
 
 ### 📊 Dasbor Utama (Main Dashboard)
-- ✅ **Summary Metrics** — Menampilkan kalkulasi total tugas keseluruhan (*To Do*, *Doing*, *Done*).
-- ✅ **Real-Time Render** — Antarmuka responsif tanpa *full-page reload* berkat Laravel Livewire.
+- ✅ **Ringkasan tugas** — Metrik total, selesai, overdue, dan tren mingguan.
+- ✅ **Grafik status & heatmap** — Distribusi status workflow dan aktivitas 30 hari terakhir (ApexCharts).
+- ✅ **Aktivitas terbaru** — Log aktivitas dalam bentuk tabel yang rapi.
+- ✅ **Sinkronisasi Trello** — Tombol sync untuk admin (memanfaatkan `TrelloService` + cache).
 
-### 📉 Grafik Aktivitas Harian
-- ✅ **Visualisasi Tren** — Grafik interaktif yang memetakan jumlah tugas yang sedang dikerjakan vs selesai.
-- ✅ **Color Coded Segments** — Palet warna kontras untuk membedakan urgensi dan status tugas secara instan.
+### 🗂 Workflow Board
+- ✅ **Papan 9 tahap** — Alur kerja internal (Drop idea → … → Finished) dengan drag-and-drop dan penyesuaian status.
 
-### 👥 Tabel Progres Karyawan
-- ✅ **Mapping Anggota** — Menarik data Trello *Members* dan memetakan penugasan mereka.
-- ✅ **Persentase Penyelesaian** — Indikator performa individual karyawan berdasarkan *Cards* yang berada pada tahap penyelesaian (*Done*).
+### 📈 Reports
+- ✅ **Filter & pencarian** — Laporan tugas dengan pagination, filter, dan bulk update status.
+- ✅ **Deep link** — Query `?userId=` untuk membuka laporan per anggota (misalnya dari Team Overview).
+
+### 👥 Team Overview
+- ✅ **Daily Completed Tasks by Member** — Grafik batang task *Finished* yang diperbarui hari ini, per anggota aktif.
+- ✅ **Ringkasan per bulan** — Kartu kinerja per anggota dengan navigasi bulan/tahun.
+- ✅ **Hall of Fame** — Riwayat *best employee* per bulan (12 bulan terakhir) dan leaderboard.
+- ✅ **Modal detail anggota** — KPI, breakdown status, riwayat menang, dan task terbaru.
 
 ### ⚡ Smart API Caching
-- ✅ **Anti Rate-Limit** — Sistem *caching* penahan antrian *(throttle)* otomatis. Menjaga reliabilitas aplikasi tanpa membebani limitasi *request* Trello API pada jam operasional sibuk.
+- ✅ **Anti Rate-Limit** — *Caching* dan throttling pada integrasi Trello agar tetap stabil di jam sibuk.
 
 ---
 
@@ -93,6 +103,25 @@
 | **CSS Framework**      | Tailwind CSS            | *Utility-first styling*       |
 | **API Provider**       | Trello REST API         | Sumber data *cards* & *lists* |
 | **HTTP Client**        | Laravel Http Facade     | Pengelolaan *requests* ke API |
+| **Charts**             | ApexCharts (CDN)        | Grafik di dashboard & Team Overview |
+
+---
+
+## 🧭 Halaman & Rute Utama
+
+| Rute | Peran | Keterangan |
+|------|--------|------------|
+| `/` | Publik | Landing |
+| `/login`, `/register` | Publik | Autentikasi (pengguna login diarahkan ke dashboard) |
+| `/dashboard` | Admin, Manager, Employee | Dasbor utama |
+| `/team-overview` | Admin, Manager, Employee | Grafik harian + ringkasan bulanan + Hall of Fame |
+| `/workflow-board` | Admin, Manager, Employee | Papan workflow 9 tahap |
+| `/reports` | Admin, Manager, Employee | Laporan & bulk actions |
+| `/tasks/{id}` | Admin, Manager, Employee | Detail task |
+| `/profile`, `/notifications` | Admin, Manager, Employee | Profil & notifikasi |
+| `/employees`, `/admin/leads` | Admin saja | Manajemen karyawan & leads |
+
+Middleware `EnsureUserRole` memastikan hanya role yang diizinkan yang mengakses rute di atas, serta memverifikasi `status_akun` = `active` (akun non-aktif akan di-logout otomatis).
 
 ---
 
@@ -103,7 +132,11 @@ web-parthaistic/
 │
 ├── 📁 app/
 │   ├── 📁 Livewire/
-│   │   └── Dashboard.php             # ⭐ Core: Komponen penggerak antarmuka
+│   │   ├── Dashboard.php             # Dasbor utama
+│   │   ├── TeamOverview.php          # Team overview + chart + Hall of Fame
+│   │   ├── WorkflowBoard.php         # Papan workflow
+│   │   ├── Reports.php               # Laporan tugas
+│   │   └── TaskDetail.php            # Detail task
 │   │
 │   ├── 📁 Services/
 │   │   └── TrelloService.php         # ⭐ Core: Logika penarikan API Trello & Caching
@@ -117,7 +150,8 @@ web-parthaistic/
 ├── 📁 resources/
 │   └── 📁 views/
 │       └── 📁 livewire/
-│           ├── dashboard.blade.php   # Tampilan antarmuka Dashboard
+│           ├── dashboard.blade.php
+│           ├── team-overview.blade.php
 │           └── ...
 │
 └── .env                              # Kredensial rahasia (Token & Key)
@@ -140,11 +174,13 @@ web-parthaistic/
 
 ### 1 — Clone Repository & Install Dependencies
 ```bash
-git clone https://github.com/username/website-parthaistic.git
+git clone https://github.com/Muzaki29/website-parthaistic.git
 cd website-parthaistic
 composer install
 npm install
 ```
+
+Panduan langkah demi langkah untuk Laragon (Windows) ada di [`docs/PANDUAN_CLONING_DAN_RUNNING_IPIW.md`](docs/PANDUAN_CLONING_DAN_RUNNING_IPIW.md).
 
 ### 2 — Konfigurasi Environment & Key
 ```bash
@@ -168,6 +204,28 @@ npm run build
 php artisan serve
 ```
 Akses di browser melalui: `http://localhost:8000`
+
+---
+
+## 🧪 Testing
+
+Jalankan seluruh tes otomatis:
+
+```bash
+php artisan test
+```
+
+Tes mencakup alur kritis (leads, register, notifikasi, Team Overview, smoke rute utama, dan middleware akun aktif).
+
+---
+
+## 📚 Dokumentasi Tambahan
+
+| File | Isi |
+|------|-----|
+| [`docs/PANDUAN_CLONING_DAN_RUNNING_IPIW.md`](docs/PANDUAN_CLONING_DAN_RUNNING_IPIW.md) | Clone, `.env`, migrate, build, troubleshooting Laragon |
+| [`docs/PANDUAN_TRELLO_UNTUK_IPIW.md`](docs/PANDUAN_TRELLO_UNTUK_IPIW.md) | Integrasi Trello |
+| [`IMPLEMENTATION_SUMMARY.md`](IMPLEMENTATION_SUMMARY.md) | Ringkasan fitur yang sudah diimplementasikan |
 
 ---
 

@@ -25,6 +25,7 @@
 <body class="bg-neutral-50 text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100">
     {{ $slot }}
     @livewireScripts
+    @stack('scripts')
 </body>
 </html>
 

@@ -47,6 +47,7 @@ class Dashboard extends Component
         }
 
         $recentActivity = ActivityLog::query()
+            ->with('user:id,name,role')
             ->when($user->role !== 'admin', fn ($q) => $q->where('user_id', $user->id))
             ->latest()
             ->take(12)

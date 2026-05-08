@@ -81,21 +81,83 @@
     </div>
 
     @if($recentActivity->isNotEmpty())
-    <div class="ui-card ui-reveal bg-white p-6 dark:bg-gray-800/80">
-        <div class="flex items-center justify-between gap-3">
+    @php
+        $activityBadge = function (string $event) {
+            $event = strtolower($event);
+            if (str_contains($event, 'login') || str_contains($event, 'logged_in')) return 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-200';
+            if (str_contains($event, 'logout') || str_contains($event, 'logged_out')) return 'bg-gray-100 text-gray-700 dark:bg-gray-700/40 dark:text-gray-200';
+            if (str_contains($event, 'create') || str_contains($event, 'submit')) return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200';
+            if (str_contains($event, 'update') || str_contains($event, 'edit')) return 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200';
+            if (str_contains($event, 'delete') || str_contains($event, 'remove')) return 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-200';
+            if (str_contains($event, 'read') || str_contains($event, 'view')) return 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-200';
+            return 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-200';
+        };
+        $subjectLabel = function ($log) {
+            if (! $log->subject_type) return null;
+            $base = class_basename($log->subject_type);
+            return $log->subject_id ? "{$base} #{$log->subject_id}" : $base;
+        };
+    @endphp
+    <div class="ui-card ui-reveal overflow-hidden bg-white dark:bg-gray-800/80">
+        <div class="flex flex-col gap-1 border-b border-gray-200 px-6 py-5 dark:border-gray-700 sm:flex-row sm:items-end sm:justify-between">
             <div>
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Aktivitas terbaru</h2>
                 <p class="text-sm text-gray-500 dark:text-gray-400">Audit ringan untuk melihat apa yang baru berubah.</p>
             </div>
+            <span class="inline-flex w-max items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary dark:bg-primary/20 dark:text-blue-300">
+                <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-primary"></span>
+                {{ $recentActivity->count() }} entri terbaru
+            </span>
         </div>
-        <ul class="mt-4 divide-y divide-gray-200 dark:divide-gray-700">
-            @foreach($recentActivity as $log)
-            <li class="flex flex-wrap items-baseline justify-between gap-2 py-3 text-sm">
-                <span class="font-medium text-gray-900 dark:text-gray-100">{{ str_replace('_', ' ', $log->event_type) }}</span>
-                <span class="text-xs text-gray-500 dark:text-gray-400">{{ $log->created_at?->diffForHumans() }}</span>
-            </li>
-            @endforeach
-        </ul>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                <thead class="bg-gray-50/70 dark:bg-gray-900/30">
+                    <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                        <th scope="col" class="px-6 py-3">Aktivitas</th>
+                        <th scope="col" class="px-6 py-3">Pengguna</th>
+                        <th scope="col" class="hidden px-6 py-3 md:table-cell">Subjek</th>
+                        <th scope="col" class="px-6 py-3 text-right">Waktu</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    @foreach($recentActivity as $log)
+                    <tr class="transition-colors hover:bg-gray-50/60 dark:hover:bg-gray-700/30">
+                        <td class="whitespace-nowrap px-6 py-3.5">
+                            <span class="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-semibold {{ $activityBadge($log->event_type) }}">
+                                <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
+                                {{ str_replace('_', ' ', $log->event_type) }}
+                            </span>
+                        </td>
+                        <td class="whitespace-nowrap px-6 py-3.5">
+                            @if($log->user)
+                                <div class="flex items-center gap-2">
+                                    <span class="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-600 text-[11px] font-bold text-white">
+                                        {{ strtoupper(\Illuminate\Support\Str::substr($log->user->name, 0, 2)) }}
+                                    </span>
+                                    <div class="leading-tight">
+                                        <div class="font-medium text-gray-900 dark:text-gray-100">{{ $log->user->name }}</div>
+                                        <div class="text-[11px] uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ $log->user->role }}</div>
+                                    </div>
+                                </div>
+                            @else
+                                <span class="text-gray-400 dark:text-gray-500">—</span>
+                            @endif
+                        </td>
+                        <td class="hidden whitespace-nowrap px-6 py-3.5 md:table-cell">
+                            @if($subject = $subjectLabel($log))
+                                <span class="rounded-md bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-700 dark:bg-gray-700/50 dark:text-gray-200">{{ $subject }}</span>
+                            @else
+                                <span class="text-gray-400 dark:text-gray-500">—</span>
+                            @endif
+                        </td>
+                        <td class="whitespace-nowrap px-6 py-3.5 text-right text-xs text-gray-500 dark:text-gray-400" title="{{ $log->created_at?->format('d M Y H:i') }}">
+                            {{ $log->created_at?->diffForHumans() }}
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
     @endif
 
@@ -187,7 +249,7 @@
                     </svg>
                 </div>
             </div>
-            <div id="chart-status"></div>
+            <div wire:ignore><div id="chart-status"></div></div>
         </div>
 
         <!-- Top Performer -->
@@ -284,7 +346,7 @@
                 </svg>
             </div>
         </div>
-        <div id="chart-heatmap"></div>
+        <div wire:ignore><div id="chart-heatmap"></div></div>
     </div>
 
     <!-- Problems & Diagnostics -->

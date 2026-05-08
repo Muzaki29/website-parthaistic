@@ -86,6 +86,7 @@
             revealTargets.forEach((el) => observer.observe(el));
         });
     </script>
+    @stack('scripts')
 </body>
 </html>
 

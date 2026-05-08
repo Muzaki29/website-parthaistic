@@ -128,9 +128,9 @@ npm run build
 
 ---
 
-## 8) Jalankan Aplikasi (Pilih Salah Satu)
+## 8) Jalankan Aplikasi (pilih salah satu)
 
-## Opsi A - Via `php artisan serve` (paling cepat)
+### Opsi A — Via `php artisan serve` (paling cepat)
 
 ```powershell
 php artisan serve
@@ -141,7 +141,19 @@ Akses:
 - `http://127.0.0.1:8000`
 - Login: `http://127.0.0.1:8000/login`
 
-## Opsi B - Via Laragon Apache (domain lokal)
+Setelah login, halaman utama yang tersedia (tergantung role):
+
+| URL | Keterangan singkat |
+|-----|-------------------|
+| `/dashboard` | Ringkasan tugas, grafik, aktivitas |
+| `/team-overview` | Task selesai per hari per anggota + ringkasan bulanan + Hall of Fame |
+| `/workflow-board` | Papan workflow multi-tahap |
+| `/reports` | Filter & laporan tugas (bisa `?userId=` untuk filter anggota) |
+| `/tasks/{id}` | Detail satu task |
+| `/profile`, `/notifications` | Profil & notifikasi |
+| `/employees`, `/admin/leads` | Hanya **admin** |
+
+### Opsi B — Via Laragon Apache (domain lokal)
 
 Karena project ada di `C:\laragon\www`, Laragon bisa langsung expose sebagai:
 
@@ -217,11 +229,12 @@ php artisan test
 - Jalankan `php artisan optimize:clear`.
 - Hard refresh browser (`Ctrl + F5`).
 
-**4. Port bentrok saat `php artisan serve`**
-- Jalankan port lain:
-  ```powershell
-  php artisan serve --port=8080
-  ```
+**5. Halaman tiba-tiba putih setelah klik navigasi Livewire (misalnya ganti bulan di Team Overview)**
+- Pastikan sudah `npm run build` atau `npm run dev` berjalan.
+- Hard refresh (`Ctrl + F5`). Jika masih bermasalah, cek konsol browser (F12) dan `storage/logs/laravel.log`.
+
+**6. Akun tidak bisa masuk setelah di-nonaktifkan admin**
+- Perilaku normal: middleware memaksa logout jika `status_akun` bukan `active`. Hubungi admin untuk mengaktifkan kembali.
 
 ---
 

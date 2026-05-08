@@ -6,6 +6,7 @@ use App\Exports\TasksExport;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
@@ -18,6 +19,7 @@ class Reports extends Component
 
     public $endDate;
 
+    #[Url(as: 'userId', except: '')]
     public $userId;
 
     public $status;
@@ -31,15 +33,25 @@ class Reports extends Component
     public $selectAll = false;
 
     public bool $showCreateModal = false;
+
     public bool $showEditModal = false;
+
     public bool $showDeleteModal = false;
+
     public ?int $editingTaskId = null;
+
     public ?int $deletingTaskId = null;
+
     public string $formTitle = '';
+
     public string $formDescription = '';
+
     public string $formStatus = '';
+
     public string $formPriority = 'medium';
+
     public ?string $formDueDate = null;
+
     public $formAssignedTo = '';
 
     public function updated($propertyName)
