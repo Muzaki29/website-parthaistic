@@ -15,12 +15,10 @@
         set();
 
         const container = $el.closest('[data-scroll-container]');
-        if (container) {
-            container.addEventListener('scroll', set, { passive: true });
-            $cleanup(() => container.removeEventListener('scroll', set));
-        } else {
-            window.addEventListener('scroll', set, { passive: true });
-            $cleanup(() => window.removeEventListener('scroll', set));
+        const target = container || window;
+        target.addEventListener('scroll', set, { passive: true });
+        if ($el && Array.isArray($el._x_cleanups)) {
+            $el._x_cleanups.push(() => target.removeEventListener('scroll', set));
         }
     "
     x-show="show"

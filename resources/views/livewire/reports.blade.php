@@ -61,7 +61,8 @@
                     <input type="date" wire:model.live="endDate" class="ui-input py-3">
                 </div>
 
-                <!-- User Filter -->
+                @if(in_array(auth()->user()->role, ['admin', 'manager'], true))
+                <!-- User Filter (admin / manager only) -->
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 transition-colors duration-300">Employee</label>
                     <select wire:model.live="userId" class="ui-input py-3">
@@ -71,6 +72,7 @@
                         @endforeach
                     </select>
                 </div>
+                @endif
 
                 <!-- Status Filter -->
                 <div>

@@ -13,6 +13,9 @@ use Livewire\Component;
 
 class Dashboard extends Component
 {
+    /** @var list<int|string> */
+    public array $selectedActivityLogIds = [];
+
     public function syncData(TrelloService $trelloService)
     {
         if (! auth()->check() || auth()->user()->role !== 'admin') {
@@ -26,6 +29,68 @@ class Dashboard extends Component
         } else {
             session()->flash('error', 'Gagal sinkronisasi: '.$result['message']);
         }
+    }
+
+    /**
+     * @return list<int>
+     */
+    protected function visibleRecentActivityLogIds(\Illuminate\Contracts\Auth\Authenticatable $user): array
+    {
+        return ActivityLog::query()
+            ->when($user->role !== 'admin', fn ($q) => $q->where('user_id', $user->id))
+            ->latest()
+            ->take(12)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
+    public function toggleSelectAllActivity(): void
+    {
+        $user = auth()->user();
+        $visible = $this->visibleRecentActivityLogIds($user);
+        if ($visible === []) {
+            $this->selectedActivityLogIds = [];
+
+            return;
+        }
+
+        $selected = array_map('intval', $this->selectedActivityLogIds);
+        $allVisibleSelected = count(array_diff($visible, $selected)) === 0;
+
+        if ($allVisibleSelected) {
+            $this->selectedActivityLogIds = array_values(array_diff($selected, $visible));
+        } else {
+            $this->selectedActivityLogIds = array_values(array_unique(array_merge($selected, $visible)));
+        }
+    }
+
+    public function deleteSelectedActivityLogs(): void
+    {
+        $user = auth()->user();
+        $visible = $this->visibleRecentActivityLogIds($user);
+        $ids = array_values(array_intersect(
+            array_map('intval', $this->selectedActivityLogIds),
+            $visible
+        ));
+
+        if ($ids === []) {
+            session()->flash('error', 'Pilih minimal satu entri log untuk dihapus.');
+
+            return;
+        }
+
+        $query = ActivityLog::query()->whereIn('id', $ids);
+        if ($user->role !== 'admin') {
+            $query->where('user_id', $user->id);
+        }
+
+        $deleted = $query->delete();
+        $this->selectedActivityLogIds = [];
+
+        session()->flash('success', $deleted === 1
+            ? '1 entri log aktivitas telah dihapus.'
+            : "{$deleted} entri log aktivitas telah dihapus.");
     }
 
     public function render()

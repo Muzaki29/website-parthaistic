@@ -63,28 +63,79 @@
         </div>
     </div>
 
+    <x-contact-support-modal />
+
     @livewireScripts
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const revealTargets = document.querySelectorAll('.ui-reveal, .ui-reveal-soft');
-            if (!revealTargets.length) return;
+        (function () {
+            var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            function markAllVisible(root) {
+                (root || document).querySelectorAll('.ui-reveal, .ui-reveal-soft').forEach(function (el) {
+                    el.classList.add('is-visible');
+                });
+            }
+
             if (prefersReducedMotion) {
-                revealTargets.forEach((el) => el.classList.add('is-visible'));
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function () { markAllVisible(); }, { once: true });
+                } else {
+                    markAllVisible();
+                }
                 return;
             }
 
-            const observer = new IntersectionObserver((entries, obs) => {
-                entries.forEach((entry) => {
-                    if (!entry.isIntersecting) return;
-                    entry.target.classList.add('is-visible');
-                    obs.unobserve(entry.target);
-                });
-            }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
+            // Single global observer reused across morphs / navigations
+            var observer = window.__parthaRevealObserver;
+            if (!observer) {
+                observer = new IntersectionObserver(function (entries, obs) {
+                    entries.forEach(function (entry) {
+                        if (!entry.isIntersecting) return;
+                        entry.target.classList.add('is-visible');
+                        obs.unobserve(entry.target);
+                    });
+                }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
+                window.__parthaRevealObserver = observer;
+            }
 
-            revealTargets.forEach((el) => observer.observe(el));
-        });
+            function observeNew(root) {
+                (root || document).querySelectorAll('.ui-reveal:not(.is-visible), .ui-reveal-soft:not(.is-visible)').forEach(function (el) {
+                    if (el.dataset.parthaRevealObserved === '1') return;
+                    el.dataset.parthaRevealObserved = '1';
+                    var rect = el.getBoundingClientRect();
+                    var alreadyInView = rect.top < (window.innerHeight || document.documentElement.clientHeight) && rect.bottom > 0;
+                    if (alreadyInView) {
+                        el.classList.add('is-visible');
+                    } else {
+                        observer.observe(el);
+                    }
+                });
+            }
+
+            function bootReveal() { observeNew(document); }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', bootReveal, { once: true });
+            } else {
+                bootReveal();
+            }
+
+            document.addEventListener('livewire:navigated', bootReveal);
+
+            function registerMorphHook() {
+                if (window.__parthaRevealMorphHookDone) return true;
+                if (typeof window.Livewire === 'undefined' || typeof Livewire.hook !== 'function') return false;
+                window.__parthaRevealMorphHookDone = true;
+                Livewire.hook('morphed', function () { observeNew(document); });
+                return true;
+            }
+
+            if (!registerMorphHook()) {
+                document.addEventListener('livewire:init', function onLwInit() {
+                    if (registerMorphHook()) document.removeEventListener('livewire:init', onLwInit);
+                });
+            }
+        })();
     </script>
     @stack('scripts')
 </body>

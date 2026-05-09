@@ -80,7 +80,6 @@
         </div>
     </div>
 
-    @if($recentActivity->isNotEmpty())
     @php
         $activityBadge = function (string $event) {
             $event = strtolower($event);
@@ -97,38 +96,84 @@
             $base = class_basename($log->subject_type);
             return $log->subject_id ? "{$base} #{$log->subject_id}" : $base;
         };
+        $visibleActivityIds = $recentActivity->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $selectedInts = array_map('intval', $selectedActivityLogIds ?? []);
+        $allVisibleSelected = count($visibleActivityIds) > 0 && count(array_diff($visibleActivityIds, $selectedInts)) === 0;
     @endphp
     <div class="ui-card ui-reveal overflow-hidden bg-white dark:bg-gray-800/80">
-        <div class="flex flex-col gap-1 border-b border-gray-200 px-6 py-5 dark:border-gray-700 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Aktivitas terbaru</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Audit ringan untuk melihat apa yang baru berubah.</p>
+        <div class="flex flex-col gap-3 border-b border-gray-200 px-6 py-5 dark:border-gray-700">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Aktivitas terbaru</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Audit ringan untuk melihat apa yang baru berubah.</p>
+                </div>
+                <div class="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-end">
+                    @if(count($selectedInts) > 0)
+                        <div class="flex flex-wrap items-center gap-2 rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2 dark:border-amber-800/50 dark:bg-amber-950/30">
+                            <span class="text-xs font-semibold text-amber-900 dark:text-amber-100">{{ count($selectedInts) }} terpilih</span>
+                            <button type="button" wire:click="$set('selectedActivityLogIds', [])" class="ui-btn-secondary !px-2.5 !py-1.5 text-xs">
+                                Batal pilih
+                            </button>
+                            <button
+                                type="button"
+                                wire:click="deleteSelectedActivityLogs"
+                                wire:confirm="Hapus {{ count($selectedInts) }} entri dari log aktivitas? Tindakan ini tidak dapat dibatalkan."
+                                class="ui-btn-danger !px-2.5 !py-1.5 text-xs"
+                            >
+                                Hapus terpilih
+                            </button>
+                        </div>
+                    @endif
+                    <span class="inline-flex w-max items-center gap-1.5 self-start rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary dark:bg-primary/20 dark:text-blue-300 sm:self-center">
+                        <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-primary"></span>
+                        {{ $recentActivity->count() }} entri terbaru
+                    </span>
+                </div>
             </div>
-            <span class="inline-flex w-max items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary dark:bg-primary/20 dark:text-blue-300">
-                <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-primary"></span>
-                {{ $recentActivity->count() }} entri terbaru
-            </span>
         </div>
+        @if($recentActivity->isEmpty())
+            <div class="ui-empty-state px-6 py-14 text-center text-sm text-gray-600 dark:text-gray-400">
+                Belum ada aktivitas yang tercatat. Log akan muncul setelah ada aksi di aplikasi.
+            </div>
+        @else
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                 <thead class="bg-gray-50/70 dark:bg-gray-900/30">
                     <tr class="text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                        <th scope="col" class="px-6 py-3">Aktivitas</th>
-                        <th scope="col" class="px-6 py-3">Pengguna</th>
-                        <th scope="col" class="hidden px-6 py-3 md:table-cell">Subjek</th>
-                        <th scope="col" class="px-6 py-3 text-right">Waktu</th>
+                        <th scope="col" class="w-12 px-4 py-3">
+                            <span class="sr-only">Pilih semua</span>
+                            <input
+                                type="checkbox"
+                                wire:click="toggleSelectAllActivity"
+                                @checked($allVisibleSelected)
+                                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:ring-offset-gray-900"
+                                title="Pilih semua di halaman ini"
+                            >
+                        </th>
+                        <th scope="col" class="px-4 py-3">Aktivitas</th>
+                        <th scope="col" class="px-4 py-3">Pengguna</th>
+                        <th scope="col" class="hidden px-4 py-3 md:table-cell">Subjek</th>
+                        <th scope="col" class="px-4 py-3 text-right">Waktu</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                     @foreach($recentActivity as $log)
-                    <tr class="transition-colors hover:bg-gray-50/60 dark:hover:bg-gray-700/30">
-                        <td class="whitespace-nowrap px-6 py-3.5">
+                    <tr wire:key="activity-log-{{ $log->id }}" class="transition-colors hover:bg-gray-50/60 dark:hover:bg-gray-700/30">
+                        <td class="whitespace-nowrap px-4 py-3.5 align-middle">
+                            <input
+                                type="checkbox"
+                                wire:model.live="selectedActivityLogIds"
+                                value="{{ $log->id }}"
+                                class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:ring-offset-gray-900"
+                            >
+                        </td>
+                        <td class="whitespace-nowrap px-4 py-3.5">
                             <span class="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-semibold {{ $activityBadge($log->event_type) }}">
                                 <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
                                 {{ str_replace('_', ' ', $log->event_type) }}
                             </span>
                         </td>
-                        <td class="whitespace-nowrap px-6 py-3.5">
+                        <td class="whitespace-nowrap px-4 py-3.5">
                             @if($log->user)
                                 <div class="flex items-center gap-2">
                                     <span class="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-600 text-[11px] font-bold text-white">
@@ -143,14 +188,14 @@
                                 <span class="text-gray-400 dark:text-gray-500">—</span>
                             @endif
                         </td>
-                        <td class="hidden whitespace-nowrap px-6 py-3.5 md:table-cell">
+                        <td class="hidden whitespace-nowrap px-4 py-3.5 md:table-cell">
                             @if($subject = $subjectLabel($log))
                                 <span class="rounded-md bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-700 dark:bg-gray-700/50 dark:text-gray-200">{{ $subject }}</span>
                             @else
                                 <span class="text-gray-400 dark:text-gray-500">—</span>
                             @endif
                         </td>
-                        <td class="whitespace-nowrap px-6 py-3.5 text-right text-xs text-gray-500 dark:text-gray-400" title="{{ $log->created_at?->format('d M Y H:i') }}">
+                        <td class="whitespace-nowrap px-4 py-3.5 text-right text-xs text-gray-500 dark:text-gray-400" title="{{ $log->created_at?->format('d M Y H:i') }}">
                             {{ $log->created_at?->diffForHumans() }}
                         </td>
                     </tr>
@@ -158,8 +203,8 @@
                 </tbody>
             </table>
         </div>
+        @endif
     </div>
-    @endif
 
     <!-- Priority Summary -->
     <div class="grid grid-cols-1 lg:grid-cols-[1.4fr,0.6fr] gap-6">
@@ -392,243 +437,180 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-            // Status Chart
+    <script type="application/json" id="partha-dashboard-charts-data">{!! json_encode([
+        'statusLabels' => $statusLabels,
+        'statusValues' => $statusValues,
+        'activityData' => $activityData,
+    ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
+</div>
+
+@push('scripts')
+<script>
+    (function () {
+        function readDashboardChartsPayload() {
+            var node = document.getElementById('partha-dashboard-charts-data');
+            if (!node) return null;
+            try { return JSON.parse(node.textContent || '{}'); }
+            catch (e) { return null; }
+        }
+
+        function isDark() { return document.documentElement.classList.contains('dark'); }
+
+        function destroyIfChart(ref) {
+            if (window[ref]) {
+                try { window[ref].destroy(); } catch (e) {}
+                window[ref] = null;
+            }
+        }
+
+        function initParthaDashboardCharts() {
+            if (typeof ApexCharts === 'undefined') return;
+            var data = readDashboardChartsPayload();
+            if (!data || !document.querySelector('#chart-status') || !document.querySelector('#chart-heatmap')) return;
+
+            destroyIfChart('__parthaDashStatusChart');
+            destroyIfChart('__parthaDashHeatmapChart');
+
+            var statusLabels = data.statusLabels || [];
+            var statusValues = data.statusValues || [];
+
             var optionsStatus = {
-                series: [{
-                    name: 'Tasks',
-                    data: @json($statusValues)
-                }],
-                chart: {
-                    type: 'bar',
-                    height: 350,
-                    toolbar: { show: false },
-                    fontFamily: 'Inter, sans-serif'
-                },
-                plotOptions: {
-                    bar: {
-                        borderRadius: 12,
-                        horizontal: false,
-                        columnWidth: '60%',
-                        distributed: false,
-                    }
-                },
-                dataLabels: {
-                    enabled: true,
-                    style: {
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        colors: ['#fff']
-                    }
-                },
+                series: [{ name: 'Tasks', data: statusValues }],
+                chart: { type: 'bar', height: 350, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+                plotOptions: { bar: { borderRadius: 12, horizontal: false, columnWidth: '60%', distributed: false } },
+                dataLabels: { enabled: true, style: { fontSize: '12px', fontWeight: 600, colors: ['#fff'] } },
                 colors: ['#475569'],
                 xaxis: {
-                    categories: @json($statusLabels),
-                    labels: {
-                        style: {
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            colors: '#6B7280'
-                        }
-                    }
+                    categories: statusLabels,
+                    labels: { style: { fontSize: '13px', fontWeight: 600, colors: '#6B7280' } },
                 },
                 yaxis: {
-                    labels: {
-                        style: {
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            colors: '#6B7280'
-                        }
-                    }
+                    labels: { style: { fontSize: '13px', fontWeight: 600, colors: '#6B7280' } },
                 },
-                grid: {
-                    borderColor: '#F3F4F6',
-                    strokeDashArray: 4,
-                },
-                tooltip: {
-                    theme: 'light',
-                    style: {
-                        fontSize: '13px'
-                    }
-                }
+                grid: { borderColor: '#F3F4F6', strokeDashArray: 4 },
+                tooltip: { theme: 'light', style: { fontSize: '13px' } },
             };
 
-            var chartStatus = new ApexCharts(document.querySelector("#chart-status"), optionsStatus);
+            var chartStatus = new ApexCharts(document.querySelector('#chart-status'), optionsStatus);
             chartStatus.render();
+            window.__parthaDashStatusChart = chartStatus;
 
-            // Activity Density Chart - Calendar Heatmap Style
-            var activityData = @json($activityData);
-            
-            // Generate all dates for last 30 days and fill with activity data
+            var activityData = data.activityData || [];
             var allDates = [];
             var today = new Date();
             var dataMap = {};
-            
-            // Create map from activity data
-            activityData.forEach(function(item) {
+            activityData.forEach(function (item) {
                 var dateKey = new Date(item.x).toISOString().split('T')[0];
                 dataMap[dateKey] = item.y;
             });
-            
-            // Generate last 30 days
             for (var i = 29; i >= 0; i--) {
                 var date = new Date(today);
                 date.setDate(date.getDate() - i);
                 var dateKey = date.toISOString().split('T')[0];
                 var dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
                 var dayNum = date.getDate();
-                
-                allDates.push({
-                    x: dayName + ' ' + dayNum,
-                    y: dataMap[dateKey] || 0,
-                    date: dateKey
-                });
+                allDates.push({ x: dayName + ' ' + dayNum, y: dataMap[dateKey] || 0, date: dateKey });
             }
-            
+
             var optionsHeatmap = {
-                series: [{
-                    name: 'Activity',
-                    data: allDates
-                }],
-                chart: {
-                    height: 350,
-                    type: 'area',
-                    toolbar: { show: false },
-                    fontFamily: 'Inter, sans-serif',
-                    sparkline: { enabled: false }
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                stroke: {
-                    curve: 'smooth',
-                    width: 3,
-                    colors: ['#0652FD']
-                },
+                series: [{ name: 'Activity', data: allDates }],
+                chart: { height: 350, type: 'area', toolbar: { show: false }, fontFamily: 'Inter, sans-serif', sparkline: { enabled: false } },
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 3, colors: ['#0652FD'] },
                 fill: {
                     type: 'gradient',
                     gradient: {
-                        shadeIntensity: 1,
-                        opacityFrom: 0.7,
-                        opacityTo: 0.3,
-                        stops: [0, 50, 100],
+                        shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.3, stops: [0, 50, 100],
                         colorStops: [
                             { offset: 0, color: '#0652FD', opacity: 0.8 },
                             { offset: 50, color: '#3B82F6', opacity: 0.5 },
-                            { offset: 100, color: '#DBEAFE', opacity: 0.2 }
-                        ]
-                    }
+                            { offset: 100, color: '#DBEAFE', opacity: 0.2 },
+                        ],
+                    },
                 },
                 colors: ['#0652FD'],
                 xaxis: {
                     type: 'category',
                     labels: {
-                        style: {
-                            fontSize: '11px',
-                            fontWeight: 600,
-                            colors: window.matchMedia('(prefers-color-scheme: dark)').matches ? '#9CA3AF' : '#6B7280'
-                        },
+                        style: { fontSize: '11px', fontWeight: 600, colors: isDark() ? '#9CA3AF' : '#6B7280' },
                         rotate: -45,
-                        rotateAlways: false
+                        rotateAlways: false,
                     },
-                    axisBorder: {
-                        show: false
-                    },
-                    axisTicks: {
-                        show: false
-                    }
+                    axisBorder: { show: false },
+                    axisTicks: { show: false },
                 },
                 yaxis: {
-                    labels: {
-                        style: {
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            colors: window.matchMedia('(prefers-color-scheme: dark)').matches ? '#9CA3AF' : '#6B7280'
-                        }
-                    },
-                    title: {
-                        text: 'Activity',
-                        style: {
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            color: window.matchMedia('(prefers-color-scheme: dark)').matches ? '#9CA3AF' : '#6B7280'
-                        }
-                    }
+                    labels: { style: { fontSize: '12px', fontWeight: 600, colors: isDark() ? '#9CA3AF' : '#6B7280' } },
+                    title: { text: 'Activity', style: { fontSize: '13px', fontWeight: 600, color: isDark() ? '#9CA3AF' : '#6B7280' } },
                 },
                 grid: {
-                    borderColor: window.matchMedia('(prefers-color-scheme: dark)').matches ? '#374151' : '#F3F4F6',
+                    borderColor: isDark() ? '#374151' : '#F3F4F6',
                     strokeDashArray: 4,
-                    xaxis: {
-                        lines: { show: false }
-                    },
-                    yaxis: {
-                        lines: { show: true }
-                    }
+                    xaxis: { lines: { show: false } },
+                    yaxis: { lines: { show: true } },
                 },
                 tooltip: {
-                    theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
-                    style: {
-                        fontSize: '13px'
-                    },
-                    y: {
-                        formatter: function(val) {
-                            return val + ' tasks';
-                        }
-                    }
+                    theme: isDark() ? 'dark' : 'light',
+                    style: { fontSize: '13px' },
+                    y: { formatter: function (val) { return val + ' tasks'; } },
                 },
-                markers: {
-                    size: 4,
-                    colors: ['#0652FD'],
-                    strokeColors: '#fff',
-                    strokeWidth: 2,
-                    hover: {
-                        size: 6
-                    }
-                }
+                markers: { size: 4, colors: ['#0652FD'], strokeColors: '#fff', strokeWidth: 2, hover: { size: 6 } },
             };
-            
-            var chartHeatmap = new ApexCharts(document.querySelector("#chart-heatmap"), optionsHeatmap);
+
+            var chartHeatmap = new ApexCharts(document.querySelector('#chart-heatmap'), optionsHeatmap);
             chartHeatmap.render();
-            
-            // Update chart theme on dark mode toggle
-            document.addEventListener('DOMContentLoaded', function() {
-                var observer = new MutationObserver(function(mutations) {
-                    mutations.forEach(function(mutation) {
-                        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                            var isDark = document.documentElement.classList.contains('dark');
-                            chartHeatmap.updateOptions({
-                                tooltip: {
-                                    theme: isDark ? 'dark' : 'light'
-                                },
-                                xaxis: {
-                                    labels: {
-                                        style: {
-                                            colors: isDark ? '#9CA3AF' : '#6B7280'
-                                        }
-                                    }
-                                },
-                                yaxis: {
-                                    labels: {
-                                        style: {
-                                            colors: isDark ? '#9CA3AF' : '#6B7280'
-                                        }
-                                    },
-                                    title: {
-                                        style: {
-                                            color: isDark ? '#9CA3AF' : '#6B7280'
-                                        }
-                                    }
-                                },
-                                grid: {
-                                    borderColor: isDark ? '#374151' : '#F3F4F6'
-                                }
-                            });
-                        }
-                    });
-                });
-                observer.observe(document.documentElement, { attributes: true });
+            window.__parthaDashHeatmapChart = chartHeatmap;
+        }
+
+        function scheduleInit() {
+            requestAnimationFrame(function () { initParthaDashboardCharts(); });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', scheduleInit, { once: true });
+        } else {
+            scheduleInit();
+        }
+
+        document.addEventListener('livewire:navigated', scheduleInit);
+
+        function registerMorphedHook() {
+            if (window.__parthaDashMorphHookDone) return true;
+            if (typeof Livewire === 'undefined' || typeof Livewire.hook !== 'function') return false;
+            window.__parthaDashMorphHookDone = true;
+            Livewire.hook('morphed', function () {
+                if (document.getElementById('partha-dashboard-charts-data')) {
+                    scheduleInit();
+                }
             });
-        });
-    </script>
-</div>
+            return true;
+        }
+
+        if (!registerMorphedHook()) {
+            document.addEventListener('livewire:init', function onLwInit() {
+                if (registerMorphedHook()) document.removeEventListener('livewire:init', onLwInit);
+            });
+        }
+
+        if (!window.__parthaDashDarkObserver) {
+            window.__parthaDashDarkObserver = new MutationObserver(function () {
+                var d = isDark();
+                if (window.__parthaDashHeatmapChart) {
+                    try {
+                        window.__parthaDashHeatmapChart.updateOptions({
+                            tooltip: { theme: d ? 'dark' : 'light' },
+                            xaxis: { labels: { style: { colors: d ? '#9CA3AF' : '#6B7280' } } },
+                            yaxis: {
+                                labels: { style: { colors: d ? '#9CA3AF' : '#6B7280' } },
+                                title: { style: { color: d ? '#9CA3AF' : '#6B7280' } },
+                            },
+                            grid: { borderColor: d ? '#374151' : '#F3F4F6' },
+                        });
+                    } catch (e) {}
+                }
+            });
+            window.__parthaDashDarkObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        }
+    })();
+</script>
+@endpush

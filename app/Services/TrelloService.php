@@ -8,6 +8,7 @@ use App\Models\Task;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -153,12 +154,12 @@ class TrelloService
         $startTime = now();
 
         $userId = auth()->id();
-        if (! $userId) {
+        if (! $userId || ! User::query()->whereKey($userId)->exists()) {
             $lock->release();
 
             return [
                 'status' => false,
-                'message' => 'Sesi pengguna tidak valid untuk melakukan sinkronisasi.',
+                'message' => 'Sesi pengguna tidak valid. Silakan login ulang lalu coba lagi.',
             ];
         }
 
@@ -208,14 +209,16 @@ class TrelloService
                 'board_id' => $this->boardId,
             ]);
 
-            $syncLog->update([
-                'status' => 'Gagal',
-                'keterangan' => substr($e->getMessage(), 0, 255), // Truncate if too long
-            ]);
+            if (isset($syncLog)) {
+                $syncLog->update([
+                    'status' => 'Gagal',
+                    'keterangan' => substr($e->getMessage(), 0, 255),
+                ]);
+            }
 
             return [
                 'status' => false,
-                'message' => 'Sinkronisasi gagal. Silakan coba lagi atau hubungi admin sistem.',
+                'message' => $e->getMessage(),
             ];
         } finally {
             optional($lock)->release();
@@ -227,15 +230,34 @@ class TrelloService
         $response = Http::timeout(10)
             ->retry(2, 300, throw: false)
             ->get("https://api.trello.com/1/boards/{$this->boardId}/lists", [
-            'key' => $this->apiKey,
-            'token' => $this->apiToken,
-        ]);
+                'key' => $this->apiKey,
+                'token' => $this->apiToken,
+            ]);
 
         if ($response->failed()) {
-            throw new \Exception('Gagal mengambil data list Trello.');
+            throw new \Exception($this->trelloHttpErrorMessage('list', $response));
         }
 
         return $response->json();
+    }
+
+    protected function trelloHttpErrorMessage(string $context, Response $response): string
+    {
+        $status = $response->status();
+        if ($status === 401 || $status === 403) {
+            return 'Akses Trello ditolak. Periksa TRELLO_API_KEY dan TRELLO_API_TOKEN di pengaturan (.env).';
+        }
+        $json = $response->json();
+        if (is_array($json) && ! empty($json['message']) && is_string($json['message'])) {
+            $hint = trim($json['message']);
+            if (stripos($hint, 'invalid key') !== false) {
+                return 'Kunci API Trello tidak valid. Periksa TRELLO_API_KEY di .env.';
+            }
+
+            return 'Gagal mengambil data '.$context.' Trello: '.$hint;
+        }
+
+        return 'Gagal mengambil data '.$context.' Trello (HTTP '.$status.').';
     }
 
     protected function fetchMembers()
@@ -243,9 +265,9 @@ class TrelloService
         $response = Http::timeout(10)
             ->retry(2, 300, throw: false)
             ->get("https://api.trello.com/1/boards/{$this->boardId}/members", [
-            'key' => $this->apiKey,
-            'token' => $this->apiToken,
-        ]);
+                'key' => $this->apiKey,
+                'token' => $this->apiToken,
+            ]);
 
         if ($response->failed()) {
             // Non-critical, just return empty
@@ -265,13 +287,13 @@ class TrelloService
         $response = Http::timeout(15)
             ->retry(2, 300, throw: false)
             ->get("https://api.trello.com/1/boards/{$this->boardId}/cards", [
-            'key' => $this->apiKey,
-            'token' => $this->apiToken,
-            'fields' => 'id,name,desc,idList,dateLastActivity,idMembers',
-        ]);
+                'key' => $this->apiKey,
+                'token' => $this->apiToken,
+                'fields' => 'id,name,desc,idList,dateLastActivity,idMembers',
+            ]);
 
         if ($response->failed()) {
-            throw new \Exception('Gagal mengambil data kartu Trello.');
+            throw new \Exception($this->trelloHttpErrorMessage('kartu', $response));
         }
 
         return $response->json();

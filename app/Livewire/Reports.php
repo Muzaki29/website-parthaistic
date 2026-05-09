@@ -32,6 +32,14 @@ class Reports extends Component
 
     public $selectAll = false;
 
+    public function mount(): void
+    {
+        $user = auth()->user();
+        if (! in_array($user->role, ['admin', 'manager'], true)) {
+            $this->userId = '';
+        }
+    }
+
     public bool $showCreateModal = false;
 
     public bool $showEditModal = false;
@@ -119,8 +127,11 @@ class Reports extends Component
             $query->whereBetween('diperbarui', [$this->startDate, $this->endDate]);
         }
 
-        if ($this->userId) {
-            $query->where('assigned_to', $this->userId);
+        $viewer = auth()->user();
+        if (! in_array($viewer->role, ['admin', 'manager'], true)) {
+            $query->where('assigned_to', $viewer->id);
+        } elseif ($this->userId !== '' && $this->userId !== null) {
+            $query->where('assigned_to', (int) $this->userId);
         }
 
         if ($this->status) {
@@ -148,12 +159,27 @@ class Reports extends Component
 
     public function export()
     {
+        $exportUserId = $this->effectiveReportsAssigneeFilter();
+
         return Excel::download(new TasksExport(
             $this->startDate,
             $this->endDate,
-            $this->userId,
+            $exportUserId,
             $this->status
         ), 'laporan-aktivitas.xlsx');
+    }
+
+    /**
+     * @return int|string|null
+     */
+    protected function effectiveReportsAssigneeFilter()
+    {
+        $user = auth()->user();
+        if (! in_array($user->role, ['admin', 'manager'], true)) {
+            return $user->id;
+        }
+
+        return ($this->userId !== '' && $this->userId !== null) ? $this->userId : null;
     }
 
     public function openCreateModal(): void

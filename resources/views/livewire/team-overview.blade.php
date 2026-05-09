@@ -502,9 +502,6 @@
 @push('scripts')
 <script>
     (function () {
-        if (window.__parthaDailyMemberInit) return;
-        window.__parthaDailyMemberInit = true;
-
         function readPayload() {
             var node = document.getElementById('partha-daily-member-data');
             if (!node) return null;
@@ -562,29 +559,53 @@
             }, 150);
         }
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', tryMount, { once: true });
-        } else {
-            tryMount();
+        function scheduleMount() {
+            requestAnimationFrame(function () { tryMount(); });
         }
 
-        document.addEventListener('livewire:navigated', tryMount);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', scheduleMount, { once: true });
+        } else {
+            scheduleMount();
+        }
 
-        var darkObserver = new MutationObserver(function () {
-            if (!window.__parthaDailyMemberChart) return;
-            var c = labelColor();
-            try {
-                window.__parthaDailyMemberChart.updateOptions({
-                    tooltip: { theme: isDark() ? 'dark' : 'light' },
-                    xaxis: { labels: { style: { colors: c } }, title: { style: { color: c } } },
-                    yaxis: { labels: { style: { colors: c } } },
-                    legend: { labels: { colors: c } },
-                    grid: { borderColor: gridColor() },
-                    dataLabels: { style: { colors: [c] } },
-                }, false, false);
-            } catch (e) {}
-        });
-        darkObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        document.addEventListener('livewire:navigated', scheduleMount);
+
+        function registerMorphedHook() {
+            if (window.__parthaDailyMemberMorphHookDone) return true;
+            if (typeof Livewire === 'undefined' || typeof Livewire.hook !== 'function') return false;
+            window.__parthaDailyMemberMorphHookDone = true;
+            Livewire.hook('morphed', function () {
+                if (document.getElementById('partha-daily-member-data') || document.getElementById('chart-daily-by-member')) {
+                    scheduleMount();
+                }
+            });
+            return true;
+        }
+
+        if (!registerMorphedHook()) {
+            document.addEventListener('livewire:init', function onLwInit() {
+                if (registerMorphedHook()) document.removeEventListener('livewire:init', onLwInit);
+            });
+        }
+
+        if (!window.__parthaDailyMemberDarkObserver) {
+            window.__parthaDailyMemberDarkObserver = new MutationObserver(function () {
+                if (!window.__parthaDailyMemberChart) return;
+                var c = labelColor();
+                try {
+                    window.__parthaDailyMemberChart.updateOptions({
+                        tooltip: { theme: isDark() ? 'dark' : 'light' },
+                        xaxis: { labels: { style: { colors: c } }, title: { style: { color: c } } },
+                        yaxis: { labels: { style: { colors: c } } },
+                        legend: { labels: { colors: c } },
+                        grid: { borderColor: gridColor() },
+                        dataLabels: { style: { colors: [c] } },
+                    }, false, false);
+                } catch (e) {}
+            });
+            window.__parthaDailyMemberDarkObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+        }
     })();
 </script>
 @endpush

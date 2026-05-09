@@ -104,7 +104,7 @@
                     <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed transition-colors duration-300">Hubungi tim support kami untuk bantuan lebih lanjut.</p>
                 </div>
             </div>
-            <button @click="showContactModal = true" class="ui-btn-primary w-full py-2.5 px-4 text-xs font-bold">
+            <button type="button" @click="showContactModal = true" class="ui-btn-primary w-full py-2.5 px-4 text-xs font-bold">
                 Contact Support
             </button>
         </div>
