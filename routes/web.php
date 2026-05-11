@@ -46,6 +46,7 @@ Route::middleware([EnsureUserRole::class.':admin,manager,employee'])->group(func
 
 Route::middleware([EnsureUserRole::class.':admin'])->group(function () {
     Route::get('/employees', Employees::class)->name('employees');
+    Route::get('/admin/trello-mapping', \App\Livewire\TrelloMapping::class)->name('admin.trello.mapping');
     Route::get('/admin/leads', [LeadController::class, 'index'])->name('admin.leads.index');
     Route::patch('/admin/leads/{lead}', [LeadController::class, 'update'])->name('admin.leads.update');
     Route::get('/test-trello-sync', function (App\Services\TrelloService $trelloService) {

@@ -19,15 +19,16 @@ class SmokeRoutesTest extends TestCase
     public static function adminRoutes(): array
     {
         return [
-            'landing'        => ['/', 200],
-            'dashboard'      => ['/dashboard', 200],
-            'team-overview'  => ['/team-overview', 200],
+            'landing' => ['/', 200],
+            'dashboard' => ['/dashboard', 200],
+            'team-overview' => ['/team-overview', 200],
             'workflow-board' => ['/workflow-board', 200],
-            'reports'        => ['/reports', 200],
-            'profile'        => ['/profile', 200],
-            'notifications'  => ['/notifications', 200],
-            'employees'      => ['/employees', 200],
-            'admin-leads'    => ['/admin/leads', 200],
+            'reports' => ['/reports', 200],
+            'profile' => ['/profile', 200],
+            'notifications' => ['/notifications', 200],
+            'employees' => ['/employees', 200],
+            'admin-leads' => ['/admin/leads', 200],
+            'trello-mapping' => ['/admin/trello-mapping', 200],
         ];
     }
 
@@ -56,6 +57,7 @@ class SmokeRoutesTest extends TestCase
 
         $this->actingAs($employee)->get('/employees')->assertForbidden();
         $this->actingAs($employee)->get('/admin/leads')->assertForbidden();
+        $this->actingAs($employee)->get('/admin/trello-mapping')->assertForbidden();
     }
 
     public function test_guest_redirects_to_login_for_protected_routes(): void

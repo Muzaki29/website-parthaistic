@@ -24,6 +24,8 @@ class User extends Authenticatable
         'role',
         'status_akun',
         'jabatan',
+        'trello_member_id',
+        'trello_username',
     ];
 
     public function syncLogs()

@@ -10,8 +10,10 @@ use Carbon\Carbon;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class TrelloService
 {
@@ -282,6 +284,39 @@ class TrelloService
         return $response->json();
     }
 
+    /**
+     * Public, cached helper used by the admin "Pemetaan Trello" page.
+     *
+     * @return array<int, array{id:string,fullName:string,username:string,initials:string}>
+     */
+    public function getBoardMembers(bool $useCache = true): array
+    {
+        if (! $this->apiKey || ! $this->apiToken || ! $this->boardId) {
+            return [];
+        }
+
+        $cacheKey = "trello:board:members:{$this->boardId}";
+        if (! $useCache) {
+            Cache::forget($cacheKey);
+        }
+
+        return Cache::remember($cacheKey, now()->addMinutes(5), function () {
+            $members = $this->fetchMembers();
+
+            return collect($members)
+                ->map(fn ($m) => [
+                    'id' => (string) ($m['id'] ?? ''),
+                    'fullName' => (string) ($m['fullName'] ?? ''),
+                    'username' => (string) ($m['username'] ?? ''),
+                    'initials' => (string) ($m['initials'] ?? ''),
+                ])
+                ->filter(fn ($m) => $m['id'] !== '')
+                ->sortBy('fullName')
+                ->values()
+                ->all();
+        });
+    }
+
     protected function fetchCards()
     {
         $response = Http::timeout(15)
@@ -306,25 +341,78 @@ class TrelloService
 
         foreach ($lists as $list) {
             $id = $list['id'];
-            $name = strtolower($list['name']);
+            $name = $list['name'] ?? '';
 
             if (isset($configMap[$id])) {
                 $map[$id] = $this->normalizeStatus($configMap[$id]);
-            } else {
-                // Auto-detect by name
-                if (str_contains($name, 'do') && ! str_contains($name, 'done')) {
-                    $map[$id] = Task::STATUS_DROP_IDEA;
-                } elseif (str_contains($name, 'doing') || str_contains($name, 'progress') || str_contains($name, 'on')) {
-                    $map[$id] = Task::STATUS_PRODUCTION;
-                } elseif (str_contains($name, 'done') || str_contains($name, 'selesai') || str_contains($name, 'complete')) {
-                    $map[$id] = Task::STATUS_FINISHED;
-                } else {
-                    $map[$id] = Task::STATUS_DROP_IDEA; // Default fallback
-                }
+
+                continue;
             }
+
+            $map[$id] = $this->detectStatusFromListName($name);
         }
 
         return $map;
+    }
+
+    /**
+     * Best-effort fuzzy mapping of a Trello list name to one of Task::workflowStatuses().
+     * Order matters: more specific patterns are tested before generic ones.
+     */
+    protected function detectStatusFromListName(string $name): string
+    {
+        $normalized = strtolower(trim($name));
+        $compact = preg_replace('/[^a-z0-9]/', '', $normalized) ?? $normalized;
+
+        // Most specific patterns first
+        if (str_contains($compact, 'finished') || str_contains($compact, 'selesai')
+            || str_contains($compact, 'completed') || str_contains($compact, 'complete')
+            || str_contains($compact, 'done') || str_contains($compact, 'published')) {
+            return Task::STATUS_FINISHED;
+        }
+
+        if (str_contains($compact, 'postproduction') || str_contains($compact, 'postprod')
+            || str_contains($compact, 'editing') || str_contains($compact, 'edit')) {
+            return Task::STATUS_POST_PRODUCTION;
+        }
+
+        if (str_contains($compact, 'crewcall') || str_contains($compact, 'shooting')
+            || str_contains($compact, 'shoot') || str_contains($compact, 'callsheet')) {
+            return Task::STATUS_CREW_CALL_SHOOTING;
+        }
+
+        if (str_contains($compact, 'production') || str_contains($compact, 'produksi')
+            || str_contains($compact, 'progress') || str_contains($compact, 'doing')) {
+            return Task::STATUS_PRODUCTION;
+        }
+
+        if (str_contains($compact, 'scriptpreview') || str_contains($compact, 'scriptdraftreview')) {
+            return Task::STATUS_SCRIPT_PREVIEW;
+        }
+
+        if (str_contains($compact, 'scriptwritten') || str_contains($compact, 'scriptdraft')
+            || str_contains($compact, 'scriptdone') || str_contains($compact, 'writtenscript')) {
+            return Task::STATUS_SCRIPT_WRITTEN;
+        }
+
+        if (str_contains($compact, 'scriptidea') || str_contains($compact, 'ideascript')
+            || (str_contains($compact, 'idea') && str_contains($compact, 'script'))) {
+            return Task::STATUS_SCRIPT_IDEA;
+        }
+
+        if (str_contains($compact, 'preview') || str_contains($compact, 'review')
+            || str_contains($compact, 'qc') || str_contains($compact, 'approval')) {
+            return Task::STATUS_PREVIEW;
+        }
+
+        if (str_contains($compact, 'dropped') || str_contains($compact, 'dropidea')
+            || str_contains($compact, 'archived') || str_contains($compact, 'rejected')
+            || str_contains($compact, 'backlog') || str_contains($compact, 'idea')
+            || str_contains($compact, 'todo') || str_contains($compact, 'inbox')) {
+            return Task::STATUS_DROP_IDEA;
+        }
+
+        return Task::STATUS_DROP_IDEA;
     }
 
     protected function normalizeStatus($key)
@@ -337,25 +425,134 @@ class TrelloService
         };
     }
 
-    protected function mapMembersToUsers($trelloMembers)
+    /**
+     * Resolve every Trello member to a local user.
+     *
+     * Resolution order (first hit wins):
+     *  1. users.trello_member_id  (manual link, most reliable)
+     *  2. users.trello_username
+     *  3. case-insensitive exact match on user.name vs Trello fullName / username
+     *  4. fuzzy match: Trello fullName contains user.name (or vice versa), e.g.
+     *     "Rizky Yudo Atmaja" ↔ "Rizky Yudo"
+     *  5. auto-create a new employee user backed by the Trello member id
+     *
+     * @return array<string,int> Trello member id => local user id
+     */
+    protected function mapMembersToUsers($trelloMembers): array
     {
-        $map = []; // TrelloMemberID => DBUserID
-        $users = User::all();
+        $map = [];
+        $users = User::query()->get();
 
         foreach ($trelloMembers as $member) {
-            // Match by Name (Simple heuristic)
-            // Ideally we match by email, but Trello API email field requires special permissions
-            $matchedUser = $users->first(function ($user) use ($member) {
-                return strtolower($user->name) === strtolower($member['fullName'])
-                    || strtolower($user->name) === strtolower($member['username']);
-            });
+            $trelloId = $member['id'] ?? null;
+            if (! $trelloId) {
+                continue;
+            }
 
-            if ($matchedUser) {
-                $map[$member['id']] = $matchedUser->id;
+            $fullName = trim((string) ($member['fullName'] ?? ''));
+            $username = trim((string) ($member['username'] ?? ''));
+
+            $matched = $users->first(fn (User $u) => $u->trello_member_id === $trelloId);
+
+            if (! $matched && $username !== '') {
+                $matched = $users->first(fn (User $u) => strtolower((string) $u->trello_username) === strtolower($username));
+            }
+
+            if (! $matched) {
+                $matched = $users->first(function (User $u) use ($fullName, $username) {
+                    $name = strtolower((string) $u->name);
+
+                    return $name !== '' && ($name === strtolower($fullName) || $name === strtolower($username));
+                });
+            }
+
+            if (! $matched && $fullName !== '') {
+                $matched = $this->fuzzyMatchUserByName($users, $fullName);
+            }
+
+            if (! $matched) {
+                $matched = $this->autoCreateUserFromTrello($member);
+                if ($matched) {
+                    $users->push($matched);
+                }
+            } else {
+                $this->backfillTrelloLink($matched, $trelloId, $username);
+            }
+
+            if ($matched) {
+                $map[$trelloId] = $matched->id;
             }
         }
 
         return $map;
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, User>  $users
+     */
+    protected function fuzzyMatchUserByName($users, string $fullName): ?User
+    {
+        $needle = strtolower($fullName);
+
+        return $users->first(function (User $u) use ($needle) {
+            $name = strtolower((string) $u->name);
+            if ($name === '' || strlen($name) < 4) {
+                return false;
+            }
+
+            return str_contains($needle, $name) || str_contains($name, $needle);
+        });
+    }
+
+    protected function autoCreateUserFromTrello(array $member): ?User
+    {
+        $trelloId = (string) ($member['id'] ?? '');
+        $fullName = trim((string) ($member['fullName'] ?? ''));
+        $username = trim((string) ($member['username'] ?? ''));
+
+        if ($trelloId === '' || ($fullName === '' && $username === '')) {
+            return null;
+        }
+
+        $existing = User::query()->where('trello_member_id', $trelloId)->first();
+        if ($existing) {
+            return $existing;
+        }
+
+        $name = $fullName !== '' ? $fullName : $username;
+        $emailSeed = $username !== '' ? $username : Str::slug($fullName, '');
+        $email = strtolower($emailSeed).'@trello.team.parthaistic.com';
+
+        $i = 1;
+        while (User::query()->where('email', $email)->exists()) {
+            $i++;
+            $email = strtolower($emailSeed).$i.'@trello.team.parthaistic.com';
+        }
+
+        return User::create([
+            'name' => $name,
+            'email' => $email,
+            'password' => Hash::make(Str::random(40)),
+            'role' => 'employee',
+            'status_akun' => 'active',
+            'jabatan' => 'Anggota Tim',
+            'trello_member_id' => $trelloId,
+            'trello_username' => $username !== '' ? $username : null,
+        ]);
+    }
+
+    protected function backfillTrelloLink(User $user, string $trelloId, string $username): void
+    {
+        $updates = [];
+        if (empty($user->trello_member_id)) {
+            $updates['trello_member_id'] = $trelloId;
+        }
+        if ($username !== '' && empty($user->trello_username)) {
+            $updates['trello_username'] = $username;
+        }
+        if ($updates !== []) {
+            $user->forceFill($updates)->save();
+        }
     }
 
     protected function processCard($card, $statusMap, $userMap, $syncId)
